@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=telldus-core
 PKG_VERSION:=2.1.2
-PKG_RELEASE:=6
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://download.telldus.com/TellStick/Software/telldus-core/
@@ -22,6 +22,7 @@ PKG_BUILD_PARALLEL:=0
 PKG_BUILD_DEPENDS:=!USE_GLIBC:argp-standalone
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/nls.mk
 include $(INCLUDE_DIR)/cmake.mk
 
 define Package/telldus-core
@@ -29,7 +30,7 @@ define Package/telldus-core
 	CATEGORY:=Utilities
 	TITLE:=Telldus TellStick USB interface
 	URL:=https://telldus.com
-	DEPENDS:=+confuse +libftdi +libstdcpp
+	DEPENDS:=+confuse +libftdi +libstdcpp $(ICONV_DEPENDS)
 endef
 
 define Package/telldus-core/description
@@ -44,7 +45,10 @@ endef
 CMAKE_OPTIONS += \
 	-DBUILD_LIBTELLDUS-CORE=1 \
 	-DBUILD_TDTOOL=1 \
-	-DGENERATE_MAN=0
+	-DGENERATE_MAN=0 \
+	-DICONV_LIBRARY=-liconv
+
+TARGET_CXXFLAGS += $(if $(ICONV_FULL),-D_FREEBSD)
 
 define Package/telldus-core/install
 	$(INSTALL_DIR)  $(1)/usr/bin

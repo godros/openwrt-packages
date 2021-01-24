@@ -7,7 +7,6 @@ SMBD_IFACE=""
 
 smb_header()
 {
-	config_get_bool enabled $1 enabled 1
 	config_get SMBD_IFACE $1 interface "lan"
 
 	# resolve interfaces
@@ -162,10 +161,6 @@ kill_server()
 start_service()
 {
 	init_config
-	[ $enabled != 1 ] && {
-		stop
-		exit 1
-	}
 
 	if [ ! -e /etc/ksmbd/smb.conf ]; then
 		logger -p daemon.error -t 'ksmbd' "missing config /etc/ksmbd/smb.conf!"
@@ -207,6 +202,6 @@ stop_service()
 	[ -f /tmp/ksmbd.lock ] && rm /tmp/ksmbd.lock
 }
 
-reload_service() {
-	restart "$@"
-}
+# reload_service() {
+	# restart "$@"
+# }

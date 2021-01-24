@@ -1,11 +1,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=meson
-PKG_VERSION:=0.56.0
+PKG_VERSION:=0.54.3
 PKG_RELEASE:=1
 
 PYPI_NAME:=meson
-PKG_HASH:=291dd38ff1cd55fcfca8fc985181dd39be0d3e5826e5f0013bf867be40117213
+PKG_HASH:=f2bdf4cf0694e696b48261cdd14380fb1d0fe33d24744d8b2df0c12f33ebb662
 
 PKG_MAINTAINER:=Andre Heider <a.heider@gmail.com>
 PKG_LICENSE:=Apache-2.0

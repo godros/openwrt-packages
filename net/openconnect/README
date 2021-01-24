@@ -32,15 +32,8 @@ config interface 'MYVPN'
 	#option token_mode 'script'
 	#option token_script '/lib/custom/getocpass.sh'
 
-	# For non-anyconnect vpn protocols
-	# Cisco AnyConnect (default)
-	#option vpn_protocol 'anyconnect'
-	# Juniper Network Connect
-	#option vpn_protocol 'nc'
-	# Palo Alto Networks GlobalProtect
-	#option vpn_protocol 'gp'
-	# Pulse Connect Secure
-	#option vpn_protocol 'pulse'
+	# Juniper vpn support
+	#option juniper '1'
 
 	# Authentication form responses
 	#list form_entry FORM:OPT=VAL

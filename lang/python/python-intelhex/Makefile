@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=python-intelhex
 PKG_VERSION:=2.2.1
-PKG_RELEASE:=3
+PKG_RELEASE:=2
 
 PYPI_NAME:=IntelHex
 PYPI_SOURCE_NAME:=intelhex

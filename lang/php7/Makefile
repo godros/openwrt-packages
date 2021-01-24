@@ -6,7 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=php
-PKG_VERSION:=7.4.14
+PKG_VERSION:=7.4.7
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=Michael Heimpold <mhei@heimpold.de>
@@ -16,7 +16,7 @@ PKG_CPE_ID:=cpe:/a:php:php
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://www.php.net/distributions/
-PKG_HASH:=f9f3c37969fcd9006c1dbb1dd76ab53f28c698a1646fa2dde8547c3f45e02886
+PKG_HASH:=53558f8f24cd8ab6fa0ea252ca8198e2650160649681ce5230c1df1dc2b52faf
 
 PKG_BUILD_PARALLEL:=1
 PKG_USE_MIPS16:=0
@@ -257,9 +257,9 @@ endif
 
 ifneq ($(SDK)$(CONFIG_PACKAGE_php7-mod-imap),)
   CONFIGURE_ARGS+= \
-	--with-imap=shared,"$(STAGING_DIR)/usr" \
-	--with-kerberos=no \
-	--with-imap-ssl="$(STAGING_DIR)/usr"
+		--with-imap=shared,"$(STAGING_DIR)/usr" \
+		--with-kerberos=no \
+		--with-imap-ssl="$(STAGING_DIR)/usr"
 else
   CONFIGURE_ARGS+= --without-imap
 endif
@@ -597,7 +597,7 @@ $(eval $(call BuildModule,exif,EXIF))
 $(eval $(call BuildModule,fileinfo,Fileinfo))
 $(eval $(call BuildModule,filter,Filter))
 $(eval $(call BuildModule,ftp,FTP,+PACKAGE_php7-mod-ftp:libopenssl))
-$(eval $(call BuildModule,gd,GD graphics,+PACKAGE_php7-mod-gd:libgd +PACKAGE_php7-mod-gd:libtiff +PACKAGE_php7-mod-gd:libfreetype))
+$(eval $(call BuildModule,gd,GD graphics,+PACKAGE_php7-mod-gd:libgd-full))
 $(eval $(call BuildModule,gettext,Gettext,+PACKAGE_php7-mod-gettext:libintl-full))
 $(eval $(call BuildModule,gmp,GMP,+PACKAGE_php7-mod-gmp:libgmp))
 $(eval $(call BuildModule,iconv,iConv,$(ICONV_DEPENDS)))

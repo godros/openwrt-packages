@@ -28,7 +28,6 @@ define Package/libowfat
   CATEGORY:=Libraries
   TITLE:=reimplemented libdjb under GPL
   URL:=https://www.fefe.de/libowfat/
-  BUILDONLY:=1
 endef
 
 define Build/Configure

@@ -8,24 +8,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=open-vm-tools
-PKG_VERSION:=11.2.0
-PKG_RELEASE:=1
+PKG_VERSION:=11.1.0
+PKG_RELEASE:=2
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-16938113.tar.gz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-16036546.tar.gz
 PKG_SOURCE_URL:=https://github.com/vmware/open-vm-tools/releases/download/stable-$(PKG_VERSION)
-PKG_HASH:=df16b78bb919e85fe2b9190148f4987ea4942f9f9667836bf1311dfc2eb839db
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-16938113
+PKG_HASH:=cb029af04357f19a899995f9e1ecfe55222b76158ab6d64fe8b56df0ccf87308
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-16036546
+PKG_INSTALL:=1
 
+PKG_BUILD_DEPENDS:=glib2/host
+
+PKG_FIXUP:=autoreconf
 PKG_LICENSE:=LGPL-2.1-or-later
 PKG_LICENSE_FILES:=LICENSE
 
-PKG_FIXUP:=autoreconf
-PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
-PKG_BUILD_DEPENDS:=glib2/host
-
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/nls.mk
 
 define Package/open-vm-tools/Default
   SECTION:=utils
@@ -77,8 +75,6 @@ CONFIGURE_ARGS+= \
 	--without-gtk3 \
 	--without-xerces \
 	--enable-resolutionkms=no
-
-TARGET_LDFLAGS += -liconv
 
 define Package/open-vm-tools/install
 	$(INSTALL_DIR) $(1)/etc/init.d/

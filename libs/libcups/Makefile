@@ -33,7 +33,6 @@ $(call Package/cups/Default)
   CATEGORY:=Libraries
   DEPENDS:=+zlib +libpthread +libpng +libjpeg +libusb-1.0
   TITLE:=Common UNIX Printing System - Core library
-  BUILDONLY:=1
 endef
 
 define Package/libcups/description

@@ -20,7 +20,6 @@ local function scrape()
           ssid = ssid,
           bssid = ap,
           freq = ap_table['freq'],
-          hostname = ap_table['hostname'],
           ht_support = ht_support,
           vht_support = vht_support,
           neighbor_report = ap_table['neighbor_report'],
@@ -35,14 +34,14 @@ local function scrape()
             local client_vht_support = (client_table['vht'] == true) and 1 or 0
             local client_signal = client_table['signal'] or -255
 
-            local labels_client_signal = {
+            local labels = {
               ssid = ssid,
               bssid = ap,
               mac = client,
               ht_support = client_ht_support,
               vht_support = client_vht_support,
             }
-            metric_dawn_station_signal_dbm(labels_client_signal, client_signal)
+            metric_dawn_station_signal_dbm(labels, client_signal)
           end
         end
       end

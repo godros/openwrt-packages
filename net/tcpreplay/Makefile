@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=tcpreplay
 PKG_VERSION:=4.3.3
-PKG_RELEASE:=3
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://github.com/appneta/tcpreplay/releases/download/v$(PKG_VERSION)
@@ -19,8 +19,7 @@ PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILES:=docs/LICENSE
 PKG_CPE_ID:=cpe:/a:appneta:tcpreplay
 
-PKG_FIXUP:=autoreconf
-PKG_BUILD_PARALLEL:=1
+PKG_FIXUP:=libtool
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
@@ -35,7 +34,7 @@ define Package/tcpreplay/default
   CATEGORY:=Network
   URL:=http://tcpreplay.appneta.com/
   MAINTAINER:=Alexandru Ardelean <ardeleanalex@gmail.com>
-  DEPENDS:=+librt +libpcap +libdnet
+  DEPENDS:=+librt +libpcap
 endef
 
 define Package/tcpbridge
@@ -136,7 +135,8 @@ CONFIGURE_VARS += \
 CONFIGURE_ARGS += \
 	--enable-force-pf \
 	--enable-dynamic-link \
-	--with-libdnet="$(STAGING_DIR)/usr" \
+	--prefix="$(PKG_INSTALL_DIR)/usr" \
+	--exec-prefix="$(PKG_INSTALL_DIR)/usr" \
 	--with-libpcap="$(STAGING_DIR)/usr"
 
 define tcpreplayTemplate

@@ -1,11 +1,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=docker-compose
-PKG_VERSION:=1.28.0
+PKG_VERSION:=1.26.2
 PKG_RELEASE:=1
 
 PYPI_NAME:=docker-compose
-PKG_HASH:=947888fe9377b48c260d59b6511ba205655c6beb45a4b70fbce28f753aacf75a
+PKG_HASH:=576b0f81d1a1325941b3ce3436efd51f28b9ecd85b10dd6daa7d51793e187b30
 
 PKG_MAINTAINER:=Javier Marcet <javier@marcet.info>
 PKG_LICENSE:=Apache-2.0
@@ -18,11 +18,12 @@ include ../../lang/python/python3-package.mk
 PYTHON3_PKG_SETUP_ARGS:=
 
 define Package/docker-compose
-  SECTION:=utils
-  CATEGORY:=Utilities
+  SECTION:=lang
+  CATEGORY:=Languages
+  SUBMENU:=Python
   TITLE:=Docker Compose
   URL:=https://github.com/docker/compose
-  DEPENDS+=+docker \
+  DEPENDS+=+docker-ce \
       +python3-light \
       +python3-cached-property \
       +python3-distro \
