@@ -1,4 +1,4 @@
-#
+# 
 # Copyright (C) 2016 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -10,30 +10,32 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=zeromq
-PKG_VERSION:=4.3.3
-PKG_RELEASE:=2
+PKG_VERSION:=4.1.4
+PKG_RELEASE:=1
+PKG_MAINTAINER:=Dirk Chang <dirk@kooiot.com>
+PKG_LICENSE:=GPL-3.0+
+PKG_LICENSE_FILES:=LICENCE.txt
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/zeromq/libzmq/releases/download/v$(PKG_VERSION)
-PKG_HASH:=9d9285db37ae942ed0780c016da87060497877af45094ff9e1a1ca736e3875a2
+PKG_SOURCE_URL:= https://github.com/zeromq/zeromq4-1/releases/download/v$(PKG_VERSION)/
+PKG_HASH:=e99f44fde25c2e4cb84ce440f87ca7d3fe3271c2b8cfbc67d55e4de25e6fe378
 
-PKG_MAINTAINER:=Dirk Chang <dirk@kooiot.com>
-PKG_LICENSE:=GPL-3.0-or-later
-PKG_LICENSE_FILES:=LICENCE.txt
-PKG_CPE_ID:=cpe:/a:zeromq:libzmq
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
-PKG_BUILD_PARALLEL:=1
-CMAKE_BINARY_SUBDIR:=openwrt-build
+PKG_FIXUP:=autoreconf
 
+PKG_INSTALL:=1
+
+
+include $(INCLUDE_DIR)/uclibc++.mk
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/cmake.mk
 
 define Package/libzmq/default
   TITLE:=ZeroMQ - Message Queue engine
   URL:=http://www.zeromq.org/
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libuuid +libpthread +librt +libstdcpp +USE_GLIBC:libbsd
+  DEPENDS:=+libuuid +libpthread +librt $(CXX_DEPENDS)
   PROVIDES:=libzmq
 endef
 
@@ -46,7 +48,7 @@ define Package/libzmq-curve
   $(call Package/libzmq/default)
   VARIANT:=curve
   TITLE+= (CurveZMQ)
-  DEPENDS+=+libsodium
+  DEPENDS+=+libsodium 
 endef
 
 define Package/libzmq-nc/description
@@ -58,29 +60,15 @@ define Package/libzmq-curve/description
  Includes CurveZMQ security by libsodium.
 endef
 
-CMAKE_OPTIONS += \
-	-DA2X_EXECUTABLE=OFF \
-	-DASCIIDOC_EXECUTABLE=OFF \
-	-DBUILD_STATIC=OFF \
-	-DCMAKE_SKIP_INSTALL_RPATH=ON \
-	-DZMQ_HAVE_SOCK_CLOEXEC=ON \
-	-DZMQ_HAVE_SO_KEEPALIVE=ON \
-	-DZMQ_HAVE_TCP_KEEPCNT=ON \
-	-DZMQ_HAVE_TCP_KEEPIDLE=ON \
-	-DZMQ_HAVE_TCP_KEEPINTVL=ON \
-	-DZMQ_HAVE_TCP_KEEPALIVE=ON \
-	-DENABLE_CURVE=ON \
-	-DENABLE_EVENTFD=ON \
-	-DPOLLER=epoll \
-	-DRT_LIBRARY=OFF \
-	-DWITH_OPENPGM=OFF \
-	-DZMQ_BUILD_TESTS=OFF \
-	-DWITH_LIBBSD=O$(if $(CONFIG_USE_GLIBC),N,FF)
+# add extra configure flags here
+CONFIGURE_ARGS += \
+	--enable-static \
+	--enable-shared
 
 ifeq ($(BUILD_VARIANT),curve)
-	CMAKE_OPTIONS += -DWITH_LIBSODIUM=ON
+  CONFIGURE_ARGS+= --with-libsodium
 else
-  	CMAKE_OPTIONS += -DWITH_LIBSODIUM=OFF
+  CONFIGURE_ARGS+= --without-libsodium
 endif
 
 define Build/InstallDev
@@ -88,11 +76,9 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/zmq.h $(1)/usr/include
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/zmq_utils.h $(1)/usr/include
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libzmq.so* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libzmq.{a,so*} $(1)/usr/lib/
 	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libzmq.pc $(1)/usr/lib/pkgconfig/
-	$(SED) 's,/usr/include,$$$${prefix}/include,g' $(1)/usr/lib/pkgconfig/libzmq.pc
-	$(SED) 's,/usr/lib,$$$${exec_prefix}/lib,g' $(1)/usr/lib/pkgconfig/libzmq.pc
 endef
 
 define Package/libzmq-nc/install

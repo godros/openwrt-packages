@@ -8,17 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lttng-tools
-PKG_VERSION:=2.10.6
+PKG_VERSION:=2.6.0
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://lttng.org/files/$(PKG_NAME)/
-PKG_HASH:=f05df52bbebf8ce88d1b29e9e98cfc957d2ed738a345118018237ebdb581537c
+PKG_HASH:=128166445126d76da7d9f42a56dec12716732a1ed697a6cfdf40c9e135384f32
 
-PKG_MAINTAINER:=
 PKG_LICENSE:=LGPL-2.1 GPL-2.0
 PKG_LICENSE_FILES:=COPYING
+PKG_MAINTAINER:=Nicolas Thill <nico@openwrt.org>
 
+PKG_FIXUP:=autoreconf
 PKG_USE_MIPS16:=0
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
@@ -33,12 +34,11 @@ define Package/lttng-tools
   DEPENDS:= +lttng-ust +libpopt +libxml2
 endef
 
-TARGET_CFLAGS += $(FPIC)
+CONFIGURE_ARGS += --disable-kmod
 
-CONFIGURE_ARGS += \
-	--enable-epoll \
-	--without-kmod \
-	--without-pic
+TARGET_LDFLAGS += -lurcu-bp
+
+MAKE_FLAGS += V="$(V)"
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include

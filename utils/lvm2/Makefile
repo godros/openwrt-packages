@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2009-2010 Stefan Monnier
-# Copyright (C) 2011-2018 OpenWrt.org
+# Copyright (C) 2011-2014 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v3+.
 # See /LICENSE for more information.
@@ -9,18 +9,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=LVM2
-PKG_VERSION:=2.03.02
-PKG_RELEASE:=2
+PKG_VERSION:=2.02.177
+PKG_RELEASE:=1
+PKG_LICENSE:=GPL-2.0 LGPL-2.1
 
 PKG_SOURCE:=$(PKG_NAME).$(PKG_VERSION).tgz
-PKG_SOURCE_URL:=https://sourceware.org/pub/lvm2
-PKG_HASH:=550ba750239fd75b7e52c9877565cabffef506bbf6d7f6f17b9700dee56c720f
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME).$(PKG_VERSION)
-
+PKG_SOURCE_URL:=ftp://sources.redhat.com/pub/lvm2/releases \
+		http://ftp.gwdg.de/pub/linux/sources.redhat.com/lvm2/
+PKG_HASH:=4025a23ec9b15c2cb7486d151c29dc953b75efc4d452cfe9dbbc7c0fac8e80f2
 PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
-PKG_LICENSE:=GPL-2.0 LGPL-2.1
-PKG_LICENSE_FILES:=COPYING COPYING.lib
-PKG_CPE_ID:=cpe:/a:heinz_mauelshagen:lvm2
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME).$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -28,8 +26,8 @@ define Package/libdevmapper
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=The Linux Kernel Device Mapper userspace library
-  URL:=https://sourceware.org/dm/
-  DEPENDS:=+kmod-dm +libpthread +libuuid +librt +libblkid
+  URL:=http://sourceware.org/dm/
+  DEPENDS:=+kmod-dm +libpthread +libuuid +librt
 endef
 
 define Package/libdevmapper/description
@@ -42,8 +40,8 @@ define Package/lvm2
   CATEGORY:=Utilities
   SUBMENU:=Disc
   TITLE:=The Linux Logical Volume Manager
-  URL:=https://sourceware.org/lvm2/
-  DEPENDS:=+libdevmapper +libreadline +libncurses +libaio
+  URL:=http://sourceware.org/lvm2/
+  DEPENDS:=+libdevmapper +libblkid +libreadline +libncurses
 endef
 
 define Package/lvm2/description
@@ -52,22 +50,12 @@ define Package/lvm2/description
  LVM toolset.
 endef
 
-CONFIGURE_ARGS += \
-  --disable-o_direct \
-  --with-default-pid-dir=/var/run \
-  --with-default-dm-run-dir=/var/run \
-  --with-default-run-dir=/var/run/lvm \
-  --with-default-locking-dir=/var/lock/lvm
-
-ifneq ($(shell /bin/sh -c "echo -n 'X'"),X)
-MAKE_SHELL = SHELL=/bin/bash
-endif
+CONFIGURE_ARGS += --disable-o_direct
 
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS) $(FPIC)" \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
-		$(MAKE_SHELL) \
 		install
 endef
 
@@ -82,7 +70,7 @@ endef
 
 define Package/libdevmapper/install
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libdevmapper.so.* $(1)/usr/lib
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libdevmapper.so.* $(1)/usr/lib
 endef
 
 define Package/lvm2/install

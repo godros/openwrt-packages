@@ -6,16 +6,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=opus-tools
-PKG_VERSION:=0.2
+PKG_VERSION:=0.1.10
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://downloads.xiph.org/releases/opus/
-PKG_HASH:=b4e56cb00d3e509acfba9a9b627ffd8273b876b4e2408642259f6da28fa0ff86
+PKG_HASH:=a2357532d19471b70666e0e0ec17d514246d8b3cb2eb168f68bb0f6fd372b28c
 
 PKG_LICENSE:=BSD-2-Clause
 PKG_LICENSE_FILES:=COPYING
-PKG_MAINTAINER:=Eduardo Abinader <eduardoabinader@gmail.com>
+PKG_MAINTAINER:=Ted Hess <thess@kitschensync.net>, \
+		Nicolas Thill <nico@openwrt.org>
 
 PKG_INSTALL:=1
 
@@ -24,7 +25,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/opus-tools
   SECTION:=sound
   CATEGORY:=Sound
-  DEPENDS:=+libogg +libopus +libopusfile +libopusenc
+  DEPENDS:=+libogg +libopus
   TITLE:=OPUS Codec tools
   URL:=http://opus-codec.org/
 endef

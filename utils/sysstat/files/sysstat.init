@@ -9,7 +9,7 @@ PROG=/usr/lib/sysstat/sadc
 SYSSTAT_CFG="/etc/sysstat/sysstat"
 
 validate_sysstat_section() {
-	uci_load_validate sysstat sysstat "$1" "$2" \
+	uci_validate_section sysstat sysstat "${1}" \
 		'log_history:uinteger' \
 		'compressafter:uinteger' \
 		'sadc_options:string' \
@@ -18,8 +18,11 @@ validate_sysstat_section() {
 		'enabled:string'
 }
 
-start_sysstat_instance() {
-	[ "$2" = 0 ] || {
+start_service() {
+
+	local log_history compressafter sadc_options sa_dir zip enabled
+
+	validate_sysstat_section sysstat || {
 		echo "validation failed"
 		return 1
 	}
@@ -37,10 +40,6 @@ start_sysstat_instance() {
 	procd_set_param command $PROG -S DISK -F -L -
 	procd_set_param file $SYSSTAT_CFG
 	procd_close_instance
-}
-
-start_service() {
-	validate_sysstat_section sysstat start_sysstat_instance
 }
 
 service_triggers()

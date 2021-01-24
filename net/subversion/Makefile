@@ -1,4 +1,6 @@
 #
+# Copyright (C) 2007-2017 OpenWrt.org
+#
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
@@ -6,11 +8,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=subversion
-PKG_RELEASE:=2
-PKG_VERSION:=1.12.2
+PKG_RELEASE:=1
+PKG_VERSION:=1.11.1
 PKG_SOURCE_URL:=@APACHE/subversion
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_HASH:=3bd0b5c8e4c5175263dc9a92fd9aef94ce917e80af034f26fe5c45fde7e0f771
+PKG_HASH:=9efd2750ca4d72ec903431a24b9c732b6cbb84aad9b7563f59dd96dea5be60bb
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=Val Kulkov <val.kulkov@gmail.com>
@@ -18,8 +20,6 @@ PKG_MAINTAINER:=Val Kulkov <val.kulkov@gmail.com>
 PKG_FIXUP:=autoreconf
 PKG_MACRO_PATHS:=build/ac-macros
 PKG_BUILD_DEPENDS:=apr-util
-PKG_BUILD_PARALLEL:=1
-PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
@@ -30,8 +30,9 @@ define Package/subversion/Default
   CATEGORY:=Network
   SUBMENU:=Version Control Systems
   TITLE:=A compelling replacement for CVS
-  DEPENDS:=+PACKAGE_unixodbc:unixodbc +libaprutil +libmagic +libsqlite3 $(ICONV_DEPENDS) $(INTL_DEPENDS)
-  URL:=https://subversion.apache.org/
+  DEPENDS:=+zlib +libsqlite3 +PACKAGE_unixodbc:unixodbc +libapr +libaprutil +libmagic \
+  	$(ICONV_DEPENDS) $(INTL_DEPENDS)
+  URL:=http://subversion.apache.org/
 endef
 
 define Package/subversion/Default/description
@@ -78,6 +79,10 @@ define Package/subversion-server/conffiles
 /etc/config/subversion
 endef
 
+TARGET_CFLAGS += $(FPIC)
+TARGET_CPPFLAGS += -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
+APU_LIBS=$(shell $(STAGING_DIR)/usr/bin/apu-1-config --link-libtool --libs)
+
 CONFIGURE_ARGS += \
 	--with-apr="$(STAGING_DIR)/usr/bin/apr-1-config" \
 	--with-apr-util="$(STAGING_DIR)/usr/bin/apu-1-config" \
@@ -98,6 +103,17 @@ ifdef $(INTL_FULL)
 else
 	CONFIGURE_ARGS += --disable-nls
 endif
+
+CONFIGURE_VARS += \
+	LDFLAGS="$(TARGET_LDFLAGS) $(APU_LIBS) -lcrypt -lm \
+		-lz -lpthread $(if $(INTL_FULL),-lintl)"
+	CPPFLAGS="$(TARGET_CPPFLAGS)"
+
+define Build/Compile
+	$(MAKE) -C $(PKG_BUILD_DIR) \
+		DESTDIR="$(PKG_INSTALL_DIR)" \
+		all local-install
+endef
 
 define Package/subversion-libs/install
 	$(INSTALL_DIR) $(1)/usr/lib

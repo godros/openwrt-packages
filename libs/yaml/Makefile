@@ -8,20 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=yaml
-PKG_VERSION:=0.2.2
+PKG_VERSION:=0.1.6
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://pyyaml.org/download/libyaml/
-PKG_HASH:=4a9100ab61047fd9bd395bcef3ce5403365cafd55c1e0d0299cde14958e47be9
+PKG_SOURCE_URL:=http://pyyaml.org/download/libyaml/
+PKG_HASH:=7da6971b4bd08a986dd2a61353bc422362bd0edcc67d7ebaac68c95f74182749
 
-PKG_MAINTAINER:=
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
-PKG_CPE_ID:=cpe:/a:pyyaml_project:pyyaml
+PKG_MAINTAINER:=Nicolas Thill <nico@openwrt.org>
 
+PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -30,7 +29,7 @@ define Package/libyaml
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=Fast YAML 1.1 parser and emitter library
-  URL:=https://pyyaml.org/wiki/LibYAML
+  URL:=http://pyyaml.org/wiki/LibYAML
 endef
 
 TARGET_CFLAGS += $(FPIC)

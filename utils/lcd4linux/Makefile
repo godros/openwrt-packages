@@ -8,13 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lcd4linux
-PKG_REV:=1204
+PKG_REV:=1203
 PKG_VERSION:=r$(PKG_REV)
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=https://sources.openwrt.org/
-PKG_HASH:=09c302d083c3d9ad311a6a506361e89aa5a78d724275adf919d77d33d7ee3dfb
+PKG_SOURCE_URL:=https://ssl.bulix.org/svn/lcd4linux/trunk/
+PKG_SOURCE_SUBDIR:=lcd4linux-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=$(PKG_REV)
+PKG_SOURCE_PROTO:=svn
 
 LCD4LINUX_DRIVERS:= \
 	ASTUSB \
@@ -203,8 +205,6 @@ endef
 
 CONFIGURE_ARGS+= \
 	--disable-rpath \
-
-TARGET_CFLAGS += -std=gnu89
 
 EXTRA_LDFLAGS+= -Wl,-rpath-link,$(STAGING_DIR)/usr/lib
 

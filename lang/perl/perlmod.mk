@@ -1,11 +1,7 @@
 # This makefile simplifies perl module builds.
 #
 
-ifeq ($(origin PERL_INCLUDE_DIR),undefined)
-  PERL_INCLUDE_DIR:=$(dir $(lastword $(MAKEFILE_LIST)))
-endif
-
-include $(PERL_INCLUDE_DIR)/perlver.mk
+include ../perl/perlver.mk
 
 ifneq ($(PKG_NAME),perl)
   PKG_VERSION:=$(PKG_VERSION)+perl$(PERL_VERSION2)

@@ -1,22 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=rsa
-
-ifeq ($(BUILD_VARIANT),python3)
-PKG_VERSION:=4.6
-PKG_HASH:=109ea5a66744dd859bf16fe904b8d8b627adafb9408753161e766a92e7d681fa
-else
-PKG_VERSION:=4.5
-PKG_HASH:=4d409f5a7d78530a4a2062574c7bd80311bc3af29b364e293aa9b03eea77714f
-endif
-
+PKG_VERSION:=4.0
 PKG_RELEASE:=1
 
 PYPI_NAME:=$(PKG_NAME)
+PKG_HASH:=1a836406405730121ae9823e19c6e806c62bbad73f890574fff50efa4122c487
 
 PKG_MAINTAINER:=Daniel Danzberger <daniel@dd-wrt.com>
 PKG_LICENSE:=MIT
-PKG_CPE_ID:=cpe:/a:python-rsa_project:python-rsa
 
 include ../pypi.mk
 include $(INCLUDE_DIR)/package.mk

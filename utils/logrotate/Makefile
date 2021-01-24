@@ -8,36 +8,23 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=logrotate
-PKG_VERSION:=3.17.0
-PKG_RELEASE:=1
+PKG_VERSION:=3.10.0
+PKG_RELEASE:=2
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=https://github.com/logrotate/logrotate/releases/download/$(PKG_VERSION)
-PKG_HASH:=58cc2178ff57faa3c0490181cce041345aeca6cff18dba1c5cd1398bf1c19294
-
-PKG_MAINTAINER:=Christian Beier <cb@shoutrlabs.com>
-PKG_LICENSE:=GPL-2.0-or-later
-PKG_LICENSE_FILES:=COPYING
-PKG_CPE_ID:=cpe:/a:gentoo:logrotate
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:= https://github.com/logrotate/logrotate/releases/download/$(PKG_VERSION)
+PKG_HASH:=dbc76cae5d4912455b5221654bb6114e43d91a3a0879ce3e20a62a157532912e
+PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/logrotate
   SECTION:=utils
   CATEGORY:=Utilities
-  DEPENDS:=+libpopt +LOGROTATE_ACL:libacl
+  DEPENDS:=+libpopt
   TITLE:=rotates, compresses, and mails system logs
   URL:=https://github.com/logrotate/logrotate
-  MENU:=1
-endef
-
-define Package/logrotate/config
-	if PACKAGE_logrotate
-		config LOGROTATE_ACL
-			bool
-			prompt "Enable ACL support"
-			default y if USE_FS_ACL_ATTR
-	endif
+  MAINTAINER:=Christian Beier <cb@shoutrlabs.com>
 endef
 
 define Package/logrotate/description
@@ -51,17 +38,20 @@ define Package/logrotate/conffiles
 /etc/logrotate.conf
 endef
 
-CONFIGURE_ARGS += $(if $(CONFIG_LOGROTATE_ACL),--with,--without)-acl
+CONFIGURE_ARGS += --with-acl=no
+
+EXTRA_CFLAGS += $(TARGET_CPPFLAGS) -Wno-nonnull-compare
+EXTRA_LDFLAGS += $(TARGET_LDFLAGS)
 
 define Build/Compile
 	$(call Build/Compile/Default, \
-		RPM_OPT_FLAGS:="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
-		LDFLAGS="$(TARGET_LDFLAGS)" \
+		RPM_OPT_FLAGS:="$(TARGET_CFLAGS) $(EXTRA_CFLAGS)" \
+		LDFLAGS="$(EXTRA_LDFLAGS)" \
 		logrotate \
 	)
 endef
 
-define Package/logrotate/install
+define Package/logrotate/install	
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) ${PKG_BUILD_DIR}/logrotate $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/etc

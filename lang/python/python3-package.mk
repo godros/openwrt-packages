@@ -20,8 +20,6 @@ PYTHON3:=python$(PYTHON3_VERSION)
 
 PYTHON3PATH:=$(PYTHON3_LIB_DIR):$(STAGING_DIR)/$(PYTHON3_PKG_DIR):$(PKG_INSTALL_DIR)/$(PYTHON3_PKG_DIR)
 
--include $(PYTHON3_LIB_DIR)/config-$(PYTHON3_VERSION)/Makefile-vars
-
 # These configure args are needed in detection of path to Python header files
 # using autotools.
 CONFIGURE_ARGS += \
@@ -35,6 +33,10 @@ PKG_USE_MIPS16:=0
 ifdef CONFIG_USE_MIPS16
   TARGET_CFLAGS += -mno-mips16 -mno-interlink-mips16
 endif
+
+define Py3Shebang
+$(SED) "1"'!'"b;s,^#"'!'".*python.*,#"'!'"/usr/bin/python3," -i --follow-symlinks $(1)
+endef
 
 define Py3Package
 
@@ -75,12 +77,14 @@ define Py3Package
 
   define Package/$(1)/install
 	$$(call Py3Package/$(1)/install,$$(1))
-	SED="$(SED)" \
 	$(SHELL) $(python3_mk_path)python-package-install.sh "3" \
 		"$(PKG_INSTALL_DIR)" "$$(1)" \
 		"$(HOST_PYTHON3_BIN)" "$$(2)" \
-		"$$$$$$$$$$(call shvar,Py3Package/$(1)/filespec)"
-  endef
+		"$$$$$$$$$$(call shvar,Py3Package/$(1)/filespec)" && \
+ 	if [ -d "$$(1)/usr/bin" ]; then \
+		$(call Py3Shebang,$$(1)/usr/bin/*) ; \
+	fi
+ endef
 
   define Package/$(1)-src/install
 	$$(call Package/$(1)/install,$$(1),sources)
@@ -102,7 +106,7 @@ define Build/Compile/HostPy3RunTarget
 		CFLAGS="$(TARGET_CFLAGS)" \
 		CPPFLAGS="$(TARGET_CPPFLAGS) -I$(PYTHON3_INC_DIR)" \
 		LDFLAGS="$(TARGET_LDFLAGS) -lpython$(PYTHON3_VERSION)" \
-		_PYTHON_HOST_PLATFORM="$(_PYTHON_HOST_PLATFORM)" \
+		_PYTHON_HOST_PLATFORM=linux2 \
 		__PYVENV_LAUNCHER__="/usr/bin/$(PYTHON3)" \
 		$(3) \
 		, \

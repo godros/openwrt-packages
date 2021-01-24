@@ -1,7 +1,7 @@
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -26,8 +26,6 @@ SUBDIRS += python-lttngust \
- 		liblttng-ust-python-agent
+@@ -20,8 +20,6 @@ if BUILD_JAVA_AGENT
+ SUBDIRS += liblttng-ust-java-agent
  endif
  
 -SUBDIRS += tests doc

@@ -1,3 +1,5 @@
+# 
+# Copyright (C) 2014 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -6,45 +8,45 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libsoup
-PKG_VERSION:=2.65.1
-PKG_RELEASE:=3
+PKG_VERSION:=2.60.3
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@GNOME/$(PKG_NAME)/2.65
-PKG_HASH:=3f3718623338f1bd7d7899dae2bdb613348212d59999a27432120afc1435ff04
+PKG_SOURCE_URL:=@GNOME/$(PKG_NAME)/2.60
+PKG_HASH:=1b0dc762f23abe4e0d29b77370e539fd35f31d8e8e0318d6ddccff395be68a22
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
-PKG_CPE_ID:=cpe:/a:gnome:libsoup
 
-PKG_BUILD_DEPENDS:=intltool/host
-PKG_BUILD_PARALLEL:=1
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
 
+TARGET_LDFLAGS+=\
+	-Wl,-rpath-link=$(STAGING_DIR)/usr/lib $(if $(ICONV_FULL),-liconv)
+
 define Package/libsoup
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=libsoup
-  URL:=https://wiki.gnome.org/Projects/libsoup
+  URL:=http://live.gnome.org/LibSoup
   MAINTAINER:=W. Michael Petullo <mike@flyn.org>
-  DEPENDS:=+glib2 +libxml2 +libgnutls +libsqlite3 +libpsl $(ICONV_DEPENDS) $(INTL_DEPENDS)
+  DEPENDS:=+glib2 +libxml2 +libgnutls +libsqlite3 $(ICONV_DEPENDS) $(INTL_DEPENDS)
 endef
 
-CONFIGURE_ARGS += \
-		--disable-debug \
+define Build/Configure
+	$(call Build/Configure/Default, \
+		--enable-ssl \
 		--disable-glibtest \
-		--disable-gtk-doc-html \
-		--disable-introspection \
-		--disable-more-warnings \
-		--disable-vala \
 		--without-apache-httpd \
 		--without-gnome \
 		--without-gssapi \
-		--without-ntlm-auth
+		--enable-vala=no \
+		--disable-more-warnings \
+	)
+endef
 
 define package/libsoup/decription
 Libsoup is an HTTP library implementation in C

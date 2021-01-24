@@ -20,7 +20,7 @@ exec_prefix=/usr
 
 APCPID=/var/run/apcupsd.pid
 APCUPSD=/usr/sbin/apcupsd
-SHUTDOWN=/sbin/halt
+SHUTDOWN=/sbin/shutdown
 SCRIPTSHELL=/bin/sh
 SCRIPTDIR=/etc/apcupsd
 WALL=true
@@ -101,11 +101,11 @@ case "$1" in
     ;;
     doreboot)
 	echo "UPS ${2} initiating Reboot Sequence" | ${WALL}
-	echo "apcupsd UPS ${2} initiated reboot" && /sbin/reboot
+	${SHUTDOWN} -r now "apcupsd UPS ${2} initiated reboot"
     ;;
     doshutdown)
 	echo "UPS ${2} initiated Shutdown Sequence" | ${WALL}
-	echo "apcupsd UPS ${2} initiated shutdown" && /sbin/halt
+	${SHUTDOWN} -h now "apcupsd UPS ${2} initiated shutdown"
     ;;
     annoyme)
 	echo "Power problems with UPS ${2}. Please logoff." | ${WALL}

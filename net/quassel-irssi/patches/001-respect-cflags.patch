@@ -1,3 +1,5 @@
+diff --git a/core/Makefile b/core/Makefile
+index 6133087..389855c 100644
 --- a/core/Makefile
 +++ b/core/Makefile
 @@ -3,7 +3,7 @@ DESTDIR ?=
@@ -9,12 +11,12 @@
  IRSSI_LIB?=$(DESTDIR)/$(LIBDIR)/irssi
  IRSSI_CFLAGS+=-I$(IRSSI_INCLUDE)/src/
  IRSSI_CFLAGS+=-I$(IRSSI_INCLUDE)/src/core/
-@@ -28,7 +28,7 @@ else
+@@ -26,7 +26,7 @@ else
      LDFLAGS += -lquasselc
  endif
  
 -CFLAGS=-std=gnu11 -Wall -Wextra -Werror -g -O2 $(IRSSI_CFLAGS) $(QUASSELC_FLAGS) -Wmissing-prototypes -Wmissing-declarations
-+CFLAGS+=-std=gnu11 -Wall -Wextra -g $(IRSSI_CFLAGS) $(QUASSELC_FLAGS) -Wmissing-prototypes -Wmissing-declarations
++CFLAGS+=-std=gnu11 -Wall -Wextra -Werror -g $(IRSSI_CFLAGS) $(QUASSELC_FLAGS) -Wmissing-prototypes -Wmissing-declarations
  
- CFLAGS += $(SSL_CFLAGS)
- LDFLAGS+= $(SSL_LDLAGS)
+ TARGET=libquassel_core.so
+ 
