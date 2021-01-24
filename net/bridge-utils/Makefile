@@ -9,19 +9,20 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=bridge-utils
-PKG_VERSION:=1.5
-PKG_RELEASE:=6
+PKG_VERSION:=1.7
+PKG_RELEASE:=2
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://git.kernel.org/pub/scm/linux/kernel/git/shemminger/bridge-utils.git
-PKG_SOURCE_VERSION:=v${PKG_VERSION}
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_MIRROR_HASH:=ce568c41f60987ed972c53fb8dab92bf45052849c4992e8ae931c1eb505630b7
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_SOURCE_URL:=@KERNEL/linux/kernel/people/shemminger/bridge-utils
+PKG_HASH:=939987e659b1a4c36ae46f44b6687f373bc5c916a9eab91f775630f5e38b997e
 
-PKG_LICENSE:=GPL-2.0+
+PKG_MAINTAINER:=Nikolay Martynov <mar.kolya@gmail.com>
+PKG_LICENSE:=GPL-2.0-or-later
 PKG_LICENSE_FILES:=COPYING
+
 PKG_FIXUP:=autoreconf
+PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -29,9 +30,8 @@ define Package/bridge
   SECTION:=net
   CATEGORY:=Base system
   TITLE:=Ethernet bridging configuration utility
-  URL:=http://bridge.sourceforge.net/
-  PKG_MAINTAINER:=Nikolay Martynov <mar.kolya@gmail.com>
-  ALTERNATIVES:=300:/usr/sbin/brctl:/usr/libexec/bridge-utils-brctl
+  URL:=http://www.linuxfromscratch.org/blfs/view/svn/basicnet/bridge-utils.html
+  ALTERNATIVES:=300:/usr/sbin/brctl:/usr/libexec/brctl-bridge-utils
 endef
 
 define Package/bridge/description
@@ -39,14 +39,12 @@ define Package/bridge/description
  form a larger network.
 endef
 
-TARGET_CFLAGS += -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
-
 CONFIGURE_ARGS += \
-	--with-linux-headers="$(LINUX_DIR)" \
+	--with-linux-headers="$(LINUX_DIR)"
 
 define Package/bridge/install
 	$(INSTALL_DIR) $(1)/usr/libexec
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/brctl/brctl $(1)/usr/libexec/bridge-utils-brctl
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/brctl $(1)/usr/libexec/brctl-bridge-utils
 endef
 
 $(eval $(call BuildPackage,bridge))

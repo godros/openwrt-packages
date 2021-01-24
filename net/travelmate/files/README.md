@@ -1,139 +1,184 @@
+<!-- markdownlint-disable -->
+
 # travelmate, a wlan connection manager for travel router
 
 ## Description
 If you’re planning an upcoming vacation or a business trip, taking your laptop, tablet or smartphone give you the ability to connect with friends or complete work on the go. But many hotels don’t have a secure wireless network setup or you’re limited on using a single device at once. Investing in a portable, mini travel router is a great way to connect all of your devices at once while having total control over your own personalized wireless network.  
 A logical combination of AP+STA mode on one physical radio allows most of OpenWrt supported router devices to connect to a wireless hotspot/station (STA) and provide a wireless access point (AP) from that hotspot at the same time. Downside of this solution: whenever the STA interface looses the connection it will go into an active scan cycle which renders the radio unusable for AP mode operation, therefore the AP is taken down if the STA looses its association.  
-To avoid these kind of deadlocks, travelmate set all station interfaces in an "always off" mode and connects automatically to available/configured hotspots.  
+To avoid these kind of deadlocks, travelmate will set all station interfaces to an "always off" mode and connects automatically to available/configured hotspots.  
 
 ## Main Features
 * STA interfaces operating in an "always off" mode, to make sure that the AP is always accessible
 * easy setup within normal OpenWrt environment
 * strong LuCI-Support with builtin interface wizard and a wireless station manager
+* render the QR-Code of the selected Access Point in LuCI to comfortably transfer the WLAN credentials to your mobile devices
 * fast uplink connections
-* support all kinds of uplinks, incl. hidden and enterprise uplinks
+* support all kinds of uplinks, incl. hidden and enterprise uplinks (WEP-based uplinks are no longer supported!)
 * continuously checks the existing uplink connection (quality), e.g. for conditional uplink (dis-) connections
+* automatically add open uplinks to your wireless config, e.g. hotel captive portals
 * captive portal detection with internet online check and a 'heartbeat' function to keep the uplink connection up & running
-* support of devices with multiple radios
-* procd init and hotplug support
+* captive portal auto-login hook (configured via uci/LuCI), you are able to reference an external script for captive portal auto-logins (see example below)
+* includes a vpn hook with support for 'wireguard' or 'openvpn' client setups to handle VPN (re-) connections automatically
+* includes an email hook to 'msmtp' to send notification e-mails after every succesful uplink connect
+* proactively scan and switch to a higher prioritized uplink, despite of an already existing connection
+* connection tracking which keeps start and end date of an uplink connection
+* automatically disable the uplink after n minutes, e.g. for timed connections
+* automatically (re-)enable the uplink after n minutes, e.g. after failed login attempts
+* option to generate a random unicast MAC address for each uplink connection
+* ntp time sync before sending emails
+* support devices with multiple radios in any order
+* procd init and ntp-hotplug support
 * runtime information available via LuCI & via 'status' init command
 * status & debug logging to syslog
-* optional: the LuCI frontend shows the WiFi QR codes from all configured Access Points. It allows you to connect your Android or iOS devices to your router’s WiFi using the QR code
 
 ## Prerequisites
-* [OpenWrt](https://openwrt.org), tested with the stable release series (17.01.x) and with the latest OpenWrt snapshot
-* iwinfo for wlan scanning, uclient-fetch for captive portal detection
-* optional: qrencode 4.x for QR code support
+* [OpenWrt](https://openwrt.org), only compatible with the forthcoming stable 20.x or the latest OpenWrt snapshot
+* 'dnsmasq' as dns backend
+* 'iwinfo' for wlan scanning
+* 'curl' for connection checking and all kinds of captive portal magic, e.g. cp detection and auto-logins
+* a 'wpad' variant to support various WPA encrypted networks (WEP-based uplinks are no longer supported!)
+* optional: 'qrencode' for AP QR code support
+* optional: 'wireguard' or 'openvpn' for vpn client connections
+* optional: 'msmtp' to send out travelmate related status messages via email
 
 ## Installation & Usage
-* download the package [here](https://downloads.openwrt.org/snapshots/packages/x86_64/packages)
-* install 'travelmate' (_opkg install travelmate_)
-* configure your network:
-    * recommended: use the LuCI frontend with builtin interface wizard and a wireless station manager
-    * manual: see detailed configuration steps below
-    * at least you need one configured AP and one STA interface
-
-## LuCI travelmate companion package
-* download the package [here](https://downloads.openwrt.org/snapshots/packages/x86_64/luci)
-* install 'luci-app-travelmate' (_opkg install luci-app-travelmate_)
-* the application is located in LuCI under 'Services' menu
+* **Please note:** before you start with travelmate ...
+    * you should setup at least one Access Point, ideally on a separate radio,
+    * if you're updating from a former 1.x release, please use the '--force-reinstall --force-maintainer' options in opkg,
+    * and remove any existing travelmate related uplink stations in your wireless config manually
+* download [travelmate](https://downloads.openwrt.org/snapshots/packages/x86_64/packages)
+* download [luci-app-travelmate](https://downloads.openwrt.org/snapshots/packages/x86_64/luci)
+* install both packages (_opkg install travelmate_, _opkg install luci-app-travelmate_)
+* the LuCI application is located under the 'Services' menu
+* start the travelmate 'Interface Wizard' once
+* add multiple uplink stations as you like via the 'Wireless Stations' tab
+* happy traveling ...
 
 ## Travelmate config options
 * usually the pre-configured travelmate setup works quite well and no manual config overrides are needed, all listed options apply to the 'global' section:
-    * trm\_enabled => main switch to enable/disable the travelmate service (bool/default: '0', disabled)
-    * trm\_debug => enable/disable debug logging (bool/default: '0', disabled)
-    * trm\_captive => enable/disable the captive portal detection (bool/default: '1', enabled)
-    * trm\_minquality => minimum signal quality threshold as percent for conditional uplink (dis-) connections (int/default: '35', valid range: 20-80)
-    * trm\_maxwait => how long (in seconds) should travelmate wait for a successful wlan interface reload action (int/default: '30', valid range: 20-40)
-    * trm\_maxretry => how many times should travelmate try to connect to an uplink (int/default: '3', valid range: 1-10)
-    * trm\_timeout => overall retry timeout in seconds (int/default: '60', valid range: 30-300)
-    * trm\_radio => limit travelmate to a dedicated radio, e.g. 'radio0' (default: not set, use all radios)
-    * trm\_iface => main uplink / procd trigger network interface (default: trm_wwan)
-    * trm\_triggerdelay => additional trigger delay in seconds before travelmate processing begins (int/default: '2')
+
+| Option             | Default                            | Description/Valid Values                                                                              |
+| :----------------- | :--------------------------------- | :---------------------------------------------------------------------------------------------------- |
+| trm_enabled        | 0, disabled                        | set to 1 to enable the travelmate service (this will be done by the Interface Wizard as well!)        |
+| trm_debug          | 0, disabled                        | set to 1 to get the full debug output (logread -e "trm-")                                             |
+| trm_iface          | -, not set                         | uplink- and procd trigger network interface, configured by the 'Interface Wizard'                     |
+| trm_radio          | -, not set                         | restrict travelmate to a single radio or change the overall scanning order ('radio1 radio0')          |
+| trm_captive        | 1, enabled                         | check the internet availability and handle captive portal redirections                                |
+| trm_netcheck       | 0, disabled                        | treat missing internet availability as an error                                                       |
+| trm_proactive      | 1, enabled                         | proactively scan and switch to a higher prioritized uplink, despite of an already existing connection |
+| trm_autoadd        | 0, disabled                        | automatically add open uplinks like hotel captive portals to your wireless config                     |
+| trm_randomize      | 0, disabled                        | generate a random unicast MAC address for each uplink connection                                      |
+| trm_triggerdelay   | 2                                  | additional trigger delay in seconds before travelmate processing begins                               |
+| trm_maxretry       | 3                                  | retry limit to connect to an uplink                                                                   |
+| trm_minquality     | 35                                 | minimum signal quality threshold as percent for conditional uplink (dis-) connections                 |
+| trm_maxwait        | 30                                 | how long should travelmate wait for a successful wlan uplink connection                               |
+| trm_timeout        | 60                                 | overall retry timeout in seconds                                                                      |
+| trm_scanbuffer     | 1024                               | buffer size in bytes to prepare nearby scan results                                                   |
+| trm_captiveurl     | http://captive.apple.com           | four pre-configured provider URLs that will be used for connectivity- and captive portal checks       |
+| trm_useragent      | Mozilla/5.0 (X11; Linux x86_64...  | five pre-configured user agents that will be used for connectivity- and captive portal checks         |
+| trm_nice           | 0, normal priority                 | change the priority of the travelmate background processing                                           |
+| trm_vpn            | 0, disabled                        | automatically handle VPN (re-) connections                                                            |
+| trm_vpnservice     | -, not set                         | reference the already configured 'wireguard' or 'openvpn' client instance as vpn provider             |
+| trm_vpniface       | -, not set                         | the logical vpn interface, e.g. 'wg0' or 'tun0'                                                       |
+| trm_laniface       | -, not set                         | the logical lan network interface, e.g. 'br-lan'                                                      |
+| trm_mail           | 0, disabled                        | sends notification e-mails after every succesful uplink connect                                       |
+| trm_mailreceiver   | -, not set                         | e-mail receiver address for travelmate notifications                                                  |
+| trm_mailsender     | no-reply@travelmate                | e-mail sender address for travelmate notifications                                                    |
+| trm_mailtopic      | travelmate connection to '<sta>'   | topic for travelmate notification E-Mails                                                             |
+| trm_mailprofile    | trm_notify                         | profile used by 'msmtp' for travelmate notification E-Mails                                           |
+  
+* per uplink exist an additional 'uplink' section in the travelmate config, with the following options:
+
+| Option             | Default                            | Description/Valid Values                                                                              |
+| :----------------- | :--------------------------------- | :---------------------------------------------------------------------------------------------------- |
+| enabled            | 1, enabled                         | enable or disable the uplink, automatically set if the retry limit or the conn. expiry was reached    |
+| device             | -, not set                         | match the 'device' in the wireless config section                                                     |
+| ssid               | -, not set                         | match the 'ssid' in the wireless config section                                                       |
+| bssid              | -, not set                         | match the 'bssid' in the wireless config section                                                      |
+| con_start          | -, not set                         | connection start (will be automatically set after a successful ntp sync)                              |
+| con_end            | -, not set                         | connection end (will be automatically set after a successful ntp sync)                                |
+| con_start_expiry   | 0, disabled                        | automatically disable the uplink after n minutes, e.g. for timed connections                          |
+| con_end_expiry     | 0, disabled                        | automatically (re-)enable the uplink after n minutes, e.g. after failed login attempts                |
+| script             | -, not set                         | reference to an external auto login script for captive portals                                        |
+| script_args        | -, not set                         | optional runtime args for the auto login script                                                       |
+  
+
+## VPN client setup
+Please follow one of the following guides to get a working vpn client setup on your travel router:
+
+* [Wireguard client setup guide](https://openwrt.org/docs/guide-user/services/vpn/wireguard/client)
+* [OpenVPN client setup guide](https://openwrt.org/docs/guide-user/services/vpn/openvpn/client)
+
+Once your vpn client connection is running, you can reference to that setup in travelmate to handle VPN (re-) connections automatically.
+
+## E-Mail setup
+To use E-Mail notifications you have to setup the package 'msmtp'.  
+
+Modify the file '/etc/msmtprc', e.g. for gmail:
+<pre><code>
+[...]
+defaults
+auth            on
+tls             on
+tls_certcheck   off
+timeout         5
+syslog          LOG_MAIL
+[...]
+account         trm_notify
+host            smtp.gmail.com
+port            587
+from            xxx@gmail.com
+user            yyy
+password        zzz
+</code></pre>
+
+Finally enable E-Mail support in travelmate and add a valid E-Mail receiver address.
+
+## Captive Portal auto-logins
+For automated captive portal logins you can reference an external shell script per uplink. All login scripts should be executable and located in '/etc/travelmate' with the extension '.login'. Currently the package ships five ready to run auto-login scripts:  
+    * 'wifionice.login' for german ICE hotspots
+    * 'db-bahn.login' for german DB railway hotspots via portal login API (still WIP, only tested at Hannover central station)
+    * 'chs-hotel.login' for german chs hotels
+    * 'h-hotels.login' for Telekom hotspots in german h+hotels
+    * 'generic-user-pass.login' a template to demonstrate the optional parameter handling in login scripts
+
+A typical and successful captive portal login looks like this:
+<pre><code>
+[...]
+Thu Sep 10 13:30:16 2020 user.info trm-2.0.0[26222]: captive portal domain 'www.wifionice.de' added to to dhcp rebind whitelist
+Thu Sep 10 13:30:19 2020 user.info trm-2.0.0[26222]: captive portal login '/etc/travelmate/wifionice.login ' for 'www.wifionice.de' has been executed with rc '0'
+Thu Sep 10 13:30:19 2020 user.info trm-2.0.0[26222]: connected to uplink 'radio1/WIFIonICE/-' with mac 'B2:9D:F5:96:86:A4' (1/3)
+[...]
+</code></pre>
+
+Hopefully more scripts for different captive portals will be provided by the community!
 
 ## Runtime information
 
 **receive travelmate runtime information:**
 <pre><code>
-~# /etc/init.d/travelmate status
+root@2go_ar750s:~# /etc/init.d/travelmate status
 ::: travelmate runtime information
-  + travelmate_status  : connected (net ok/78)
-  + travelmate_version : 1.2.1
-  + station_id         : radio1/blackhole/01:02:03:04:05:06
+  + travelmate_status  : connected (net ok/100)
+  + travelmate_version : 2.0.0
+  + station_id         : radio1/WIFIonICE/-
+  + station_mac        : B2:9D:F5:96:86:A4
   + station_interface  : trm_wwan
-  + faulty_stations    : 
-  + last_rundate       : 28.07.2018 21:17:45
-  + system             : TP-LINK RE450, OpenWrt SNAPSHOT r7540+5-20c4819c7b
+  + wpa_flags          : sae: ✔, owe: ✔, eap: ✔, suiteb192: ✔
+  + run_flags          : captive: ✔, proactive: ✔, netcheck: ✘, autoadd: ✘, randomize: ✔
+  + ext_hooks          : ntp: ✔, vpn: ✘, mail: ✘
+  + last_run           : 2020.09.10-15:21:19
+  + system             : GL.iNet GL-AR750S (NOR/NAND), OpenWrt SNAPSHOT r14430-2dda301d40
 </code></pre>
 
-## Manual Setup
-**1. configure the travelmate wwan interface in /etc/config/network:**
-<pre><code>
-[...]
-config interface 'trm_wwan'
-        option proto 'dhcp'
-[...]
-</code></pre>
-
-**2. add this interface to your firewall configuration in /etc/config/firewall:**
-<pre><code>
-[...]
-config zone
-        option name 'wan'
-        option network 'wan wan6 trm_wwan'
-[...]
-</code></pre>
-
-**3. at least add one ap and (multiple) wwan stations to your wireless configuration in etc/config/wireless:**
-<pre><code>
-[...]
-config wifi-iface
-        option device 'radio0'
-        option network 'lan'
-        option mode 'ap'
-        option ssid 'example_ap'
-        option encryption 'psk2+ccmp'
-        option key 'abc'
-        option disabled '0'
-[...]
-config wifi-iface
-        option device 'radio0'
-        option network 'trm_wwan'
-        option mode 'sta'
-        option ssid 'example_usual'
-        option encryption 'psk2+ccmp'
-        option key 'abc'
-        option disabled '1'
-[...]
-config wifi-iface
-        option device 'radio0'
-        option network 'trm_wwan'
-        option mode 'sta'
-        option ssid 'example_hidden'
-        option bssid '00:11:22:33:44:55'
-        option encryption 'psk2+ccmp'
-        option key 'xyz'
-        option disabled '1'
-[...]
-</code></pre>
-
-**4. start travelmate:**
-<pre><code>
-edit /etc/config/travelmate and set 'trm_enabled' to '1'
-/etc/init.d/travelmate restart
-</code></pre>
-
-## FAQ
-**Q:** What happen with misconfigured, faulty uplinks, e.g. due to outdated wlan passwords?  
-**A:** Travelmate tries n times (default 3) to connect, then the respective uplink will be marked as "faulty" in the JSON runtime file and hereafter ignored. To reset the JSON runtime file, simply restart travelmate.  
-**Q:** How to connect to hidden uplinks?  
-**A:** See 'example\_hidden' STA configuration above, option 'SSID' and 'BSSID' must be specified for successful connections.  
+To debug travelmate runtime problems, please always enable the 'trm\_debug' flag, restart travelmate and check the system log afterwards (_logread -e "trm-"_)
 
 ## Support
 Please join the travelmate discussion in this [forum thread](https://forum.lede-project.org/t/travelmate-support-thread/5155) or contact me by [mail](mailto:dev@brenken.org)  
 
 ## Removal
 * stop the travelmate daemon with _/etc/init.d/travelmate stop_
-* optional: remove the travelmate package (_opkg remove travelmate_)
+* optional: remove the travelmate package (_opkg remove luci-app-travelmate_, _opkg remove travelmate_)
 
 Have fun!  
 Dirk  

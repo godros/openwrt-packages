@@ -9,92 +9,78 @@ include $(TOPDIR)/rules.mk
 
 PKG_NPM_NAME:=cylon
 PKG_NAME:=node-$(PKG_NPM_NAME)
-PKG_VERSION:=0.24.0
-PKG_RELEASE:=1
+PKG_VERSION:=1.3.0
+PKG_RELEASE:=25
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/hybridgroup/cylon-firmata.git
-PKG_SOURCE_VERSION:=a930f8446f23ec2cb28aadeff54b79ab7704e3a0
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_SOURCE_VERSION)
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_MIRROR_HASH:=dceb75539d32f402db0a5f68f2c7e2b52e5547a5ac2dec875d34fd3cc95cce00
+PKG_SOURCE:=$(PKG_NPM_NAME)-$(PKG_VERSION).tgz
+PKG_SOURCE_URL:=https://mirrors.cloud.tencent.com/npm/$(PKG_NPM_NAME)/-/ \
+                https://registry.npm.taobao.org/$(PKG_NPM_NAME)/-/ \
+                https://registry.npmjs.org/$(PKG_NPM_NAME)/-/
+PKG_HASH:=a8e67e65ea9574aa47979b950c8588a9e4e9b11069caf82cbc4e250c790f970f
 
-PKG_BUILD_DEPENDS:=node/host
-PKG_NODE_VERSION:=8.10.0
-
-PKG_MAINTAINER:=John Crispin <blogic@openwrt.org>
+PKG_MAINTAINER:=Hirokazu MORIKAWA <morikw2@gmail.com>
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE
 
+PKG_BUILD_DEPENDS:=node/host
+PKG_BUILD_PARALLEL:=1
+PKG_USE_MIPS16:=0
+
 include $(INCLUDE_DIR)/package.mk
 
-define Package/node-cylon/default
+define Package/node-cylon
   SUBMENU:=Node.js
   SECTION:=lang
   CATEGORY:=Languages
-  TITLE:=CylonJS - $(1)
+  TITLE:=JavaScript framework for robotics/drones/IoT using Node.js
   URL:=https://www.npmjs.org/package/cylon
-  DEPENDS:=+node +node-npm $(2)
-endef
-
-define Package/node-cylon
-  $(call Package/node-cylon/default,Core)
-endef
-
-define Package/node-cylon-i2c
-  $(call Package/node-cylon/default,I2C,+node-cylon)
-endef
-
-define Package/node-cylon-gpio
-  $(call Package/node-cylon/default,GPIO,+node-cylon)
-endef
-
-define Package/node-cylon-firmata
-  $(call Package/node-cylon/default,Firmata,+node-cylon-gpio +node-cylon-i2c +node-arduino-firmata)
+  DEPENDS:=+node
 endef
 
 define Package/node-cylon/description
-	JavaScript Robotics, By Your Command Next generation robotics framework with support for 36 different platforms Get Started
+ JavaScript framework for robotics, drones, and the Internet of Things (IoT) using Node.js
 endef
 
-define Build/Prepare
-	/bin/tar xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR) --strip-components 1
-	$(Build/Patch)
-endef
+TAR_OPTIONS+= --strip-components 1
+TAR_CMD=$(HOST_TAR) -C $(1) $(TAR_OPTIONS)
 
-EXTRA_LDFLAGS="-L$(TOOLCHAIN_DIR)/lib/ -Wl,-rpath-link $(TOOLCHAIN_DIR)/lib/" \
+NODEJS_CPU:=$(subst powerpc,ppc,$(subst aarch64,arm64,$(subst x86_64,x64,$(subst i386,ia32,$(ARCH)))))
+TMPNPM:=$(shell mktemp -u XXXXXXXXXX)
+
+TARGET_CFLAGS+=$(FPIC)
+TARGET_CPPFLAGS+=$(FPIC)
 
 define Build/Compile
+	$(MAKE_VARS) \
 	$(MAKE_FLAGS) \
-	npm_config_arch=$(CONFIG_ARCH) \
-	npm_config_nodedir=$(BUILD_DIR)/node-v$(PKG_NODE_VERSION)/ \
-	npm_config_cache=$(BUILD_DIR)/node-v$(PKG_NODE_VERSION)/npm-cache \
-	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
+	npm_config_arch=$(NODEJS_CPU) \
+	npm_config_target_arch=$(NODEJS_CPU) \
+	npm_config_build_from_source=true \
+	npm_config_nodedir=$(STAGING_DIR)/usr/ \
+	npm_config_prefix=$(PKG_INSTALL_DIR)/usr/ \
+	npm_config_cache=$(TMP_DIR)/npm-cache-$(TMPNPM) \
+	npm_config_tmp=$(TMP_DIR)/npm-tmp-$(TMPNPM) \
 	npm install -g $(PKG_BUILD_DIR)
+	rm -rf $(TMP_DIR)/npm-tmp-$(TMPNPM)
+	rm -rf $(TMP_DIR)/npm-cache-$(TMPNPM)
 endef
 
 define Package/node-cylon/install
-	mkdir -p $(1)/usr/lib/node/cylon
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/cylon-firmata/node_modules/cylon/* $(1)/usr/lib/node/cylon/
+	$(INSTALL_DIR) $(1)/usr/lib/node/$(PKG_NPM_NAME)
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/$(PKG_NPM_NAME)/{package.json,LICENSE,*.md} \
+		$(1)/usr/lib/node/$(PKG_NPM_NAME)/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/$(PKG_NPM_NAME)/{*.markdown,*.js} \
+		$(1)/usr/lib/node/$(PKG_NPM_NAME)/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/$(PKG_NPM_NAME)/lib \
+		$(1)/usr/lib/node/$(PKG_NPM_NAME)/
+	$(INSTALL_DIR) $(1)/usr/lib/node_modules
+	$(LN) ../node/$(PKG_NPM_NAME) $(1)/usr/lib/node_modules/$(PKG_NPM_NAME)
 endef
 
-define Package/node-cylon-i2c/install
-	mkdir -p $(1)/usr/lib/node/cylon-i2c
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/cylon-firmata/node_modules/cylon-i2c/* $(1)/usr/lib/node/cylon-i2c/
-endef
-
-define Package/node-cylon-gpio/install
-	mkdir -p $(1)/usr/lib/node/cylon-gpio
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/cylon-firmata/node_modules/cylon-gpio/* $(1)/usr/lib/node/cylon-gpio/
-endef
-
-define Package/node-cylon-firmata/install
-	mkdir -p $(1)/usr/lib/node/cylon-firmata
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/cylon-firmata/{index.js,lib,LICENSE,package.json,README.md,RELEASES.md,spec} $(1)/usr/lib/node/cylon-firmata/
+define Package/node-cylon/postrm
+#!/bin/sh
+rm /usr/lib/node_modules/cylon || true
+rm -rf /usr/lib/node/cylon || true
 endef
 
 $(eval $(call BuildPackage,node-cylon))
-$(eval $(call BuildPackage,node-cylon-i2c))
-$(eval $(call BuildPackage,node-cylon-gpio))
-$(eval $(call BuildPackage,node-cylon-firmata))
-

@@ -5,23 +5,16 @@ Unescaped left brace in regex is deprecated, passed through in regex; marked by 
 
 --- a/intltool-update.in
 +++ b/intltool-update.in
-@@ -983,13 +983,13 @@ sub SubstituteVariable
+@@ -1062,7 +1062,7 @@
  	}
      }
-     
+ 
 -    if ($str =~ /^(.*)\${?([A-Z_]+)}?(.*)$/)
 +    if ($str =~ /^(.*)\$\{?([A-Z_]+)}?(.*)$/)
      {
  	my $rest = $3;
  	my $untouched = $1;
- 	my $sub = "";
-         # Ignore recursive definitions of variables
--        $sub = $varhash{$2} if defined $varhash{$2} and $varhash{$2} !~ /\${?$2}?/;
-+        $sub = $varhash{$2} if defined $varhash{$2} and $varhash{$2} !~ /\$\{?$2}?/;
- 
- 	return SubstituteVariable ("$untouched$sub$rest");
-     }
-@@ -1111,10 +1111,10 @@ sub FindPackageName
+@@ -1190,10 +1190,10 @@
  	$name    =~ s/\(+$//g;
  	$version =~ s/\(+$//g;
  
@@ -34,9 +27,9 @@ Unescaped left brace in regex is deprecated, passed through in regex; marked by 
 +	$varhash{"PACKAGE_VERSION"} = $version if (not $name =~ /\$\{?AC_PACKAGE_VERSION}?/);
 +	$varhash{"VERSION"} = $version if (not $name =~ /\$\{?VERSION}?/);
      }
-     
-     if ($conf_source =~ /^AC_INIT\(([^,\)]+),([^,\)]+)[,]?([^,\)]+)?/m) 
-@@ -1129,11 +1129,11 @@ sub FindPackageName
+ 
+     if ($conf_source =~ /^AC_INIT\(([^,\)]+),([^,\)]+)[,]?([^,\)]+)?/m)
+@@ -1219,11 +1219,11 @@
  	$version =~ s/\(+$//g;
          $bugurl  =~ s/\(+$//g if (defined $bugurl);
  

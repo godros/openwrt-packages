@@ -21,6 +21,13 @@
 #
 ##############################################################################
 
+# while useful (sh)ellcheck is pedantic and noisy
+# shellcheck disable=1091,2002,2004,2034,2039,2086,2094,2140,2154,2155
+
+UB_IPTOOLS_BLANK=
+
+##############################################################################
+
 domain_ptr_ip6() {
   # Get the nibble rounded /CIDR ...ip6.arpa.
   echo "$1" | awk -F: \
@@ -82,7 +89,7 @@ domain_ptr_ip4() {
 ##############################################################################
 
 host_ptr_ip4() {
-  # Get omplete host ...in-addr.arpa.
+  # Get complete host ...in-addr.arpa.
   echo "$1" | awk -F. \
   '{ x = ( $4"."$3"."$2"."$1".in-addr.arpa" ) ;
   sub(/\/[0-9]+/,"",x) ;
@@ -124,6 +131,21 @@ valid_subnet4() {
 
 ##############################################################################
 
+valid_subnet_any() {
+  local subnet=$1
+  local validip4=$( valid_subnet4 $subnet )
+  local validip6=$( valid_subnet6 $subnet )
+
+
+  if [ "$validip4" = "ok" ] || [ "$validip6" = "ok" ] ; then
+    echo "ok"
+  else
+    echo "not"
+  fi
+}
+
+##############################################################################
+
 private_subnet() {
   case "$1" in
     10"."*) echo "ok" ;;
@@ -134,6 +156,61 @@ private_subnet() {
     f[cd][0-9a-f][0-9a-f]":"*) echo "ok" ;;
     *) echo "not" ;;
   esac
+}
+
+##############################################################################
+
+local_subnet() {
+  # local subnet 2nd place is limited to one digit to improve the filter
+  case "$1" in
+    127"."[0-9]"."[0-9]*) echo "ok" ;;
+    ::1) echo "ok" ;;
+    *) echo "not" ;;
+  esac
+}
+
+##############################################################################
+
+domain_ptr_any() {
+  local subnet=$1
+  local arpa validip4 validip6
+
+  validip4=$( valid_subnet4 $subnet )
+  validip6=$( valid_subnet6 $subnet )
+
+
+  if [ "$validip4" = "ok" ] ; then
+    arpa=$( domain_ptr_ip4 "$subnet" )
+  elif [ "$validip6" = "ok" ] ; then
+    arpa=$( domain_ptr_ip6 "$subnet" )
+  fi
+
+
+  if [ -n "$arpa" ] ; then
+    echo $arpa
+  fi
+}
+
+##############################################################################
+
+host_ptr_any() {
+  local subnet=$1
+  local arpa validip4 validip6
+
+  validip4=$( valid_subnet4 $subnet )
+  validip6=$( valid_subnet6 $subnet )
+
+
+  if [ "$validip4" = "ok" ] ; then
+    arpa=$( host_ptr_ip4 "$subnet" )
+  elif [ "$validip6" = "ok" ] ; then
+    arpa=$( host_ptr_ip6 "$subnet" )
+  fi
+
+
+  if [ -n "$arpa" ] ; then
+    echo $arpa
+  fi
 }
 
 ##############################################################################

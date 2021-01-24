@@ -5,7 +5,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=auc
-PKG_VERSION:=0.0.9
+PKG_VERSION:=0.1.4
 PKG_RELEASE:=2
 PKG_LICENSE:=GPL-3.0
 
@@ -17,7 +17,7 @@ define Package/auc
   CATEGORY:=Base system
   TITLE:=Attended sysUpgrade CLI (EXPERIMENTAL)
   DEPENDS:=+attendedsysupgrade-common +libblobmsg-json +libubox +libubus \
-           +libuci +libuclient +rpcd-mod-rpcsys
+           +libuci +libuclient +rpcd-mod-rpcsys +ucert
 endef
 
 define Package/auc/description

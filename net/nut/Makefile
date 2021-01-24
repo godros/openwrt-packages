@@ -9,24 +9,23 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nut
 PKG_VERSION:=2.7.4
-PKG_RELEASE:=11
+PKG_RELEASE:=21
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.networkupstools.org/source/2.7/
 PKG_HASH:=980e82918c52d364605c0703a5dcf01f74ad2ef06e3d365949e43b7d406d25a7
-PKG_MAINTAINER:=Daniel Dickinson <cshored@thecshore.com>
-PKG_LICENSE:=GPL-2.0
-PKG_LICENSE_FILES:=LICENSE-GPL2
+PKG_LICENSE:=GPL-2.0-or-later GPL-3.0-or-later GPL-1.0-or-later Artistic-1.0-Perl
+PKG_LICENSE_FILES:=LICENSE-GPL2 LICENSE-GPL3 COPYING
 PKG_FIXUP:=autoreconf
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL:=1
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_NUT_DRIVER_SNMP \
 	CONFIG_NUT_DRIVER_USB \
 	CONFIG_NUT_DRIVER_SERIAL \
-	CONFIG_NUT_SSL
+	CONFIG_NUT_SSL \
+	CONFIG_PACKAGE_nut-web-cgi
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -73,12 +72,24 @@ define Package/nut-server/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/share/nut/cmdvartab $(1)/usr/share/nut/
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/nut_server $(1)/etc/config/nut_server
-	ln -sf /var/etc/nut/upsd.users  $(1)/etc/nut/upsd.users
-	ln -sf /var/etc/nut/upsd.conf $(1)/etc/nut/upsd.conf
+	ln -sf ../../var/etc/nut/upsd.users  $(1)/etc/nut/upsd.users
+	ln -sf ../../var/etc/nut/upsd.conf $(1)/etc/nut/upsd.conf
 	# Driver common portion
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/upsdrvctl $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/share/nut/driver.list $(1)/usr/share/nut/
-	ln -sf /var/etc/nut/ups.conf $(1)/etc/nut/ups.conf
+	ln -sf ../../var/etc/nut/ups.conf $(1)/etc/nut/ups.conf
+	# Mangle libhid.usermap into a format (hotplug shell script) useful for OpenWrt
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/usb
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/tty
+	$(INSTALL_BIN) ./files/nut_serial.hotplug $(1)/etc/hotplug.d/tty/40-nut_serial
+	$(INSTALL_BIN) ./files/30-libhid-ups.head $(1)/etc/hotplug.d/usb/30-libhid-ups
+	$(CP) $(PKG_INSTALL_DIR)/etc/hotplug/usb/libhid.usermap $(PKG_BUILD_DIR)/30-libhid-ups.middle
+	$(SED) '/^$$$$/d' \
+		-e '/^#/d' \
+		-E -e 's:^[^ ][^ ]*  *0x0003  *0x0{0,3}([^ ][^ ]*)  *0x0{0,3}*([^ ][^ ]*).*:\1/\2/* | \\:' \
+		$(PKG_BUILD_DIR)/30-libhid-ups.middle
+	tail -n+2 $(PKG_BUILD_DIR)/30-libhid-ups.middle >>$(1)/etc/hotplug.d/usb/30-libhid-ups
+	cat ./files/30-libhid-ups.tail >>$(1)/etc/hotplug.d/usb/30-libhid-ups
 endef
 
 define Package/nut-common
@@ -133,7 +144,7 @@ define Package/nut-upsmon
   $(call Package/nut/Default)
 	TITLE+= (monitor)
 	DEPENDS:=nut +nut-common
-	USERID:=nut=113:nut=113
+	USERID:=nutmon=114:nutmon=114
 endef
 
 define Package/nut-upsmon/description
@@ -191,7 +202,7 @@ define Package/nut-upsc/description
 $(call Package/nut/description/Default)
 upsc is provided as a quick way to poll the status of a UPS server. It
 can be used inside shell scripts and other programs that need UPS data
-but don not want to include the full interface.
+but do not want to include the full interface.
 endef
 
 define Package/nut-upsc/install
@@ -290,7 +301,7 @@ endef
 define Package/nut-web-cgi
 	$(call Package/nut/Default)
 	TITLE+= Web CGI interface
-	DEPENDS:=nut +nut-common +libgd
+	DEPENDS:=nut +nut-common +PACKAGE_nut-web-cgi:libgd
 endef
 
 define Package/nut-web-cgi/description
@@ -317,12 +328,15 @@ define Package/nut-web-cgi/install
 	$(INSTALL_CONF) ./files/add_nut_httpd_conf $(1)/etc/uci-defaults/add_nut_httpd_conf
 	$(INSTALL_CONF) $(PKG_INSTALL_DIR)/etc/nut/upsstats.html.sample $(1)/etc/nut/upsstats.html
 	$(INSTALL_CONF) $(PKG_INSTALL_DIR)/etc/nut/upsstats-single.html.sample $(1)/etc/nut/upsstats-single.html
-	$(INSTALL_CONF) $(PKG_INSTALL_DIR)/etc/nut/upsset.conf.sample $(1)/etc/nut/upsset.conf
+	$(INSTALL_CONF) $(PKG_INSTALL_DIR)/etc/nut/upsset.conf.sample $(1)/etc/nut/upsset.conf.disable
+	$(INSTALL_CONF) $(PKG_INSTALL_DIR)/etc/nut/upsset.conf.sample $(1)/etc/nut/upsset.conf.enable
+	$(SED) 's/### \?//' $(1)/etc/nut/upsset.conf.enable
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/nut_cgi $(1)/etc/config/nut_cgi
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/nut-cgi.init $(1)/etc/init.d/nut-cgi
 	ln -sf /var/etc/nut/hosts.conf $(1)/etc/nut/hosts.conf
+	ln -sf /var/etc/nut/upsset.conf $(1)/etc/nut/upsset.conf
 endef
 
 define Package/nut-avahi-service
@@ -361,10 +375,10 @@ define DriverPackage
 	# new version of nut we will need to provide descriptions for any new
 	# drivers.
         define Package/nut-driver-$(2)/description
-		
+
         endef
         define Package/nut-driver-$(2)/install
-        	$(INSTALL_DIR) $$(1)/lib/nut
+		$(INSTALL_DIR) $$(1)/lib/nut
 		$(CP) $$(PKG_INSTALL_DIR)/lib/nut/$(2) $$(1)/lib/nut/
 		$(if $(filter $(2),clone),$(CP) $$(PKG_INSTALL_DIR)/lib/nut/$(2)-outlet $$(1)/lib/nut/)
         endef
@@ -511,10 +525,12 @@ CONFIGURE_ARGS += \
 	--without-avahi \
 	--$(if $(CONFIG_NUT_DRIVER_SNMP),with,without)-snmp \
 	--$(if $(CONFIG_NUT_DRIVER_SERIAL),with,without)-serial \
+	--without-doc \
 	--without-neon \
 	--without-powerman \
 	--without-wrap \
-	--with-cgi \
+	--with-hotplug-dir=/etc/hotplug \
+	--with$(if $(CONFIG_PACKAGE_nut-web-cgi),,out)-cgi \
 	--without-ipmi \
 	--without-freeipmi \
 	--$(if $(CONFIG_NUT_SSL),with,without)-ssl $(if $(CONFIG_NUT_SSL),--with-openssl) \
@@ -522,7 +538,9 @@ CONFIGURE_ARGS += \
 	--with-statepath=/var/run/nut \
 	--with-drvpath=/lib/nut \
 	--with-user=root \
-	--with-group=root
+	--with-group=root \
+	$(if $(CONFIG_PACKAGE_nut-web-cgi),--with-gd-includes="`pkg-config --cflags gdlib`") \
+	$(if $(CONFIG_PACKAGE_nut-web-cgi),--with-gd-libs="`pkg-config --libs gdlib`")
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include $(1)/usr/lib/pkgconfig

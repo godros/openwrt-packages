@@ -10,11 +10,12 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=isc-dhcp
 UPSTREAM_NAME:=dhcp
 PKG_VERSION:=4.4.1
-PKG_RELEASE:=3
+PKG_RELEASE:=13
 
 PKG_LICENSE:=BSD-3-Clause
 PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=Philip Prindeville <philipp@redfish-solutions.com>
+PKG_CPE_ID:=cpe:/a:isc:dhcp
 
 PKG_SOURCE:=$(UPSTREAM_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=ftp://ftp.isc.org/isc/dhcp/$(PKG_VERSION) \
@@ -59,7 +60,7 @@ define Package/isc-dhcp-relay/description
 endef
 
 define Package/isc-dhcp-relay-ipv4/description
-$(call Package/isc-dhcp-relay-ipv6/description)
+$(call Package/isc-dhcp-relay/description)
  This package is compiled with IPv4 support only.
 endef
 
@@ -108,12 +109,14 @@ define Package/isc-dhcp-server-ipv4
   $(call Package/isc-dhcp/Default)
   TITLE+= server (without IPv6)
   VARIANT:=ipv4
+  DEPENDS+=bind-server bind-client
 endef
 
 define Package/isc-dhcp-server-ipv6
   $(call Package/isc-dhcp/Default)
   TITLE+= server (with IPv6)
   VARIANT:=ipv6
+  DEPENDS+=bind-server bind-client
 endef
 
 define Package/isc-dhcp-server/description
@@ -161,7 +164,6 @@ $(call Package/isc-dhcp-omshell/description)
 endef
 
 CONFIGURE_ARGS += \
-	--disable-tracing 		\
 	--enable-paranoia		\
 	--disable-dependency-tracking	\
 	--with-randomdev=/dev/urandom \
@@ -173,6 +175,8 @@ endif
 ifeq ($(BUILD_VARIANT),ipv6)
   CONFIGURE_ARGS += --enable-dhcpv6
 endif
+
+TARGET_CFLAGS += -fcommon
 
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR)			\
