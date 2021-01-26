@@ -18,7 +18,7 @@
 #	option PKCS11Provider		/lib/pteidpkcs11.so
 #	option ServerAliveCountMax	3
 #	option ServerAliveInterval	0
-#	option StrictHostKeyChecking	accept-new
+#	option StrictHostKeyChecking	ask
 #	option TCPKeepAlive		yes
 #	option VerifyHostKeyDNS		yes
 

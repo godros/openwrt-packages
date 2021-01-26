@@ -8,28 +8,26 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hdparm
-PKG_VERSION:=9.60
+PKG_VERSION:=9.52
 PKG_RELEASE:=1
+PKG_USE_MIPS16:=0
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@SF/$(PKG_NAME)
-PKG_HASH:=8397739c73e44d5ab96c4aef28fa9c0147276d53a1b5657ce04c4565cf6635cc
-
-PKG_MAINTAINER:=
+PKG_HASH:=c3429cd423e271fa565bf584598fd751dd2e773bb7199a592b06b5a61cec4fb6
+PKG_MAINTAINER:=Richard Kunze <richard.kunze@web.de>
 PKG_LICENSE:=BSD-Style Open Source License
-PKG_LICENSE_FILES:=LICENSE.TXT
-
-PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
+
+TARGET_CFLAGS+=-D_GNU_SOURCE
 
 define Package/hdparm
   SECTION:=utils
   CATEGORY:=Utilities
   SUBMENU:=Disc
   TITLE:=Hard disk drive configuration utilitity
-  URL:=https://sourceforge.net/projects/hdparm/
+  URL:=http://sourceforge.net/projects/hdparm/
 endef
 
 define Package/hdparm/description
@@ -38,7 +36,7 @@ endef
 
 define Package/hdparm/install
 	$(INSTALL_DIR) $(1)/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/hdparm $(1)/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(PKG_NAME) $(1)/sbin
 endef
 
 $(eval $(call BuildPackage,hdparm))

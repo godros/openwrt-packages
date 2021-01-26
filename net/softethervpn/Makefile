@@ -12,22 +12,21 @@ PKG_NAME:=softethervpn
 PKG_VERSION:=4.29-9680
 PKG_VERREL:=rtm
 PKG_VERDATE:=2019.02.28
-PKG_RELEASE:=5
+PKG_RELEASE:=2
 
 PKG_SOURCE:=softether-src-v$(PKG_VERSION)-$(PKG_VERREL).tar.gz
 PKG_SOURCE_URL:=http://www.softether-download.com/files/softether/v$(PKG_VERSION)-$(PKG_VERREL)-$(PKG_VERDATE)-tree/Source_Code/
 PKG_HASH:=e6035fa7d9aaf59bdb342cd7ab5ecfdff89811a875f62a3230208cdc8a4e26e4
 
-PKG_MAINTAINER:=Federico Di Marco <fededim@gmail.com>
-PKG_LICENSE:=GPL-2.0-or-later
-PKG_LICENSE_FILES:=COPYING
-
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)/v$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/$(PKG_NAME)/v$(PKG_VERSION)
-PKG_BUILD_DEPENDS:=softethervpn/host
-HOST_BUILD_DEPENDS:=readline/host libiconv/host
 
-PKG_ASLR_PIE:=0
+PKG_LICENSE:=GPL-2.0
+PKG_LICENSE_FILES:=COPYING
+
+PKG_BUILD_DEPENDS:=softethervpn/host
+HOST_BUILD_DEPENDS:=readline/host libiconv/host openssl
+
 HAMCORE_SE2:=$(STAGING_DIR_HOST)/share/softethervpn/hamcore.se2
 
 include $(INCLUDE_DIR)/nls.mk
@@ -40,7 +39,6 @@ HOST_MAKE_FLAGS += -C $(HOST_BUILD_DIR)
 # Select 32 or 64 bit Makefile for host build depending on host architecture
 HOST_MAKE_FLAGS += -f src/makefiles/linux_$(if $(shell uname -m | grep 64),64,32)bit.mak
 
-HOST_LDFLAGS += -Wl,-rpath$(comma)$(STAGING_DIR_HOSTPKG)/lib
 # Prevent calling upstream configure
 define Host/Configure
 endef
@@ -84,12 +82,14 @@ define Build/Configure
 endef
 
 
-define Package/softethervpn/default
+define Package/softethervpn
   SECTION:=net
   CATEGORY:=Network
   SUBMENU:=VPN
+  DEPENDS:=+libpthread +librt +libreadline +libopenssl +libncurses +kmod-tun +zlib $(ICONV_DEPENDS)
   TITLE:=Free Cross-platform Multi-protocol VPN server and client
   URL:=http://www.softether.org/
+  MAINTAINER:=Federico Di Marco <fededim@gmail.com>
 endef
 
 define Package/softethervpn/description
@@ -101,98 +101,41 @@ IPsec and MS-SSTP), but has also original strong SSL-VPN protocol to penetrate a
 has very fast throughput, low latency and firewall resistance.
 endef
 
-define Package/softethervpn-base
-  $(Package/softethervpn/default)
-  DEPENDS:=+libpthread +librt +libreadline +libopenssl +libncurses +kmod-tun +zlib $(ICONV_DEPENDS)
-  TITLE += (Base)
+
+define Package/softethervpn/conffiles
+/usr/libexec/softethervpn/vpn_server.config
+/usr/libexec/softethervpn/vpn_client.config
+/usr/libexec/softethervpn/vpn_bridge.config
+/usr/libexec/softethervpn/lang.config
 endef
 
-define Package/softethervpn-server
-  $(Package/softethervpn/default)
-  DEPENDS:=+softethervpn-base
-  TITLE += (Server)
-endef
-
-define Package/softethervpn-bridge
-  $(Package/softethervpn/default)
-  DEPENDS:=+softethervpn-base
-  TITLE += (Bridge)
-endef
-
-define Package/softethervpn-client
-  $(Package/softethervpn/default)
-  DEPENDS:=+softethervpn-base
-  TITLE += (Client)
-endef
-
-Package/softethervpn-base/description = $(Package/softethervpn/description)
-Package/softethervpn-server/description = $(Package/softethervpn/description)
-Package/softethervpn-bridge/description = $(Package/softethervpn/description)
-Package/softethervpn-client/description = $(Package/softethervpn/description)
-
-define Package/softethervpn-base/conffiles
-  /usr/libexec/softethervpn/lang.config
-endef
-
-define Package/softethervpn-server/conffiles
-  /usr/libexec/softethervpn/vpn_server.config
-endef
-
-define Package/softethervpn-client/conffiles
-  /usr/libexec/softethervpn/vpn_client.config
-endef
-
-define Package/softethervpn-bridge/conffiles
-  /usr/libexec/softethervpn/vpn_bridge.config
-endef
-
-define Package/softethervpn-base/install
+define Package/softethervpn/install
 	$(INSTALL_DIR) $(1)/usr/libexec/softethervpn
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpnserver/vpnserver $(1)/usr/libexec/softethervpn
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpnserver/hamcore.se2 $(1)/usr/libexec/softethervpn
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpnclient/vpnclient $(1)/usr/libexec/softethervpn
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpnbridge/vpnbridge $(1)/usr/libexec/softethervpn
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpncmd/vpncmd $(1)/usr/libexec/softethervpn
 	$(INSTALL_BIN) files/launcher.sh $(1)/usr/libexec/softethervpn
 
+	$(INSTALL_DATA) files/dummy $(1)/usr/libexec/softethervpn/vpn_server.config
+	$(INSTALL_DATA) files/dummy $(1)/usr/libexec/softethervpn/vpn_bridge.config
+	$(INSTALL_DATA) files/dummy $(1)/usr/libexec/softethervpn/vpn_client.config
 	$(INSTALL_DATA) files/dummy $(1)/usr/libexec/softethervpn/lang.config
 
 	$(INSTALL_DIR) $(1)/usr/bin
+
+	#$(LN) ../../usr/libexec/softethervpn/launcher.sh $(1)/usr/bin/vpnserver
+	#$(LN) ../../usr/libexec/softethervpn/launcher.sh $(1)/usr/bin/vpnclient
+	#$(LN) ../../usr/libexec/softethervpn/launcher.sh $(1)/usr/bin/vpnbridge
 	$(LN) ../../usr/libexec/softethervpn/launcher.sh $(1)/usr/bin/vpncmd
-endef
-
-define Package/softethervpn-server/install
-	$(INSTALL_DIR) $(1)/usr/libexec/softethervpn
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpnserver/vpnserver $(1)/usr/libexec/softethervpn
-
-	$(INSTALL_DATA) files/dummy $(1)/usr/libexec/softethervpn/vpn_server.config
 
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) files/vpnserver.init $(1)/etc/init.d/softethervpnserver
-endef
-
-define Package/softethervpn-bridge/install
-	$(INSTALL_DIR) $(1)/usr/libexec/softethervpn
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpnbridge/vpnbridge $(1)/usr/libexec/softethervpn
-
-	$(INSTALL_DATA) files/dummy $(1)/usr/libexec/softethervpn/vpn_bridge.config
-
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) files/vpnbridge.init $(1)/etc/init.d/softethervpnbridge
-endef
-
-define Package/softethervpn-client/install
-	$(INSTALL_DIR) $(1)/usr/libexec/softethervpn
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/vpnclient/vpnclient $(1)/usr/libexec/softethervpn
-
-	$(INSTALL_DATA) files/dummy $(1)/usr/libexec/softethervpn/vpn_client.config
-
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) files/vpnclient.init $(1)/etc/init.d/softethervpnclient
 endef
 
-$(eval $(call BuildPackage,softethervpn-base))
-$(eval $(call BuildPackage,softethervpn-server))
-$(eval $(call BuildPackage,softethervpn-client))
-$(eval $(call BuildPackage,softethervpn-bridge))
+$(eval $(call BuildPackage,softethervpn))
 $(eval $(call HostBuild))

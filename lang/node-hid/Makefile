@@ -7,85 +7,61 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NPM_NAME:=node-hid
-PKG_NAME:=$(PKG_NPM_NAME)
-PKG_VERSION:=2.1.1
-PKG_RELEASE:=1
+PKG_NPM_NAME:=hid
+PKG_NAME:=node-$(PKG_NPM_NAME)
+PKG_VERSION:=0.7.2
+PKG_RELEASE:=3
 
-PKG_SOURCE:=$(PKG_NPM_NAME)-$(PKG_VERSION).tgz
-PKG_SOURCE_URL:=https://mirrors.cloud.tencent.com/npm/$(PKG_NPM_NAME)/-/ \
-                https://registry.npm.taobao.org/$(PKG_NPM_NAME)/-/ \
-                https://registry.npmjs.org/$(PKG_NPM_NAME)/-/
-PKG_HASH:=6c1f05935215feed4e8d2f4aecf31abbad8fa783d252b0bd6041ed2f2e96e9ba
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/node-hid/node-hid.git
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=v0.7.2
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_MIRROR_HASH:=ede801a26a23290ab76d64ab636c3c3e2788030bb830af7006d37444c2a7b2c4
 
-PKG_MAINTAINER:=Hirokazu MORIKAWA <morikw2@gmail.com>
-PKG_LICENSE:=MIT OR X11
+PKG_BUILD_DEPENDS:=node/host libudev-fbsd
+PKG_NODE_VERSION:=8.10.0
+
+PKG_MAINTAINER:=John Crispin <blogic@openwrt.org>
+PKG_LICENSE:=Custom
 PKG_LICENSE_FILES:=
 
-PKG_BUILD_DEPENDS:=node/host
-PKG_BUILD_PARALLEL:=1
-PKG_USE_MIPS16:=0
-
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/nls.mk
 
 define Package/node-hid
   SUBMENU:=Node.js
   SECTION:=lang
   CATEGORY:=Languages
-  TITLE:=Access USB HID devices from node.js
-  URL:=https://www.npmjs.com/package/node-hid
-  DEPENDS:=+node $(ICONV_DEPENDS) +libusb-1.0 +libudev
+  TITLE:=Node.js package to access HID devices
+  URL:=https://github.com/node-hid/node-hid
+  DEPENDS:=+node +node-npm +libusb-1.0 +hidapi +libstdcpp
 endef
 
 define Package/node-hid/description
- Access USB HID devices from node.js
+ Node.js package to access HID devices
 endef
 
-TAR_OPTIONS+= --strip-components 1
-TAR_CMD=$(HOST_TAR) -C $(1) $(TAR_OPTIONS)
+CPU:=$(subst x86_64,x64,$(subst i386,ia32,$(ARCH)))
 
-NODEJS_CPU:=$(subst powerpc,ppc,$(subst aarch64,arm64,$(subst x86_64,x64,$(subst i386,ia32,$(ARCH)))))
 TMPNPM:=$(shell mktemp -u XXXXXXXXXX)
 
 TARGET_CFLAGS+=$(FPIC) -I$(STAGING_DIR)/usr/include/libusb-1.0
-TARGET_CPPFLAGS+=$(FPIC)
 
 define Build/Compile
-	GYP_DEFINES='driver="hidraw"' \
+	git init $(PKG_BUILD_DIR)
 	$(MAKE_VARS) \
 	$(MAKE_FLAGS) \
-	npm_config_arch=$(NODEJS_CPU) \
-	npm_config_target_arch=$(NODEJS_CPU) \
-	npm_config_build_from_source=true \
-	npm_config_nodedir=$(STAGING_DIR)/usr/ \
-	npm_config_prefix=$(PKG_INSTALL_DIR)/usr/ \
-	npm_config_cache=$(TMP_DIR)/npm-cache-$(TMPNPM) \
-	npm_config_tmp=$(TMP_DIR)/npm-tmp-$(TMPNPM) \
-	npm install -g $(PKG_BUILD_DIR)
-	rm -rf $(TMP_DIR)/npm-tmp-$(TMPNPM)
-	rm -rf $(TMP_DIR)/npm-cache-$(TMPNPM)
+	npm_config_arch=$(CONFIG_ARCH) \
+	npm_config_nodedir=$(BUILD_DIR)/node-v$(PKG_NODE_VERSION)/ \
+	npm_config_cache=$(BUILD_DIR)/node-v$(PKG_NODE_VERSION)/npm-cache-$(TMPNPM) \
+	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
+	npm install --build-from-source --target_arch=$(CPU) -g $(PKG_BUILD_DIR)
 endef
 
 define Package/node-hid/install
-	$(INSTALL_DIR) $(1)/usr/lib/node/$(PKG_NPM_NAME)
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/$(PKG_NPM_NAME)/{package.json,*.md,*.js} \
-		$(1)/usr/lib/node/$(PKG_NPM_NAME)/
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/$(PKG_NPM_NAME)/{node_modules,src} \
-		$(1)/usr/lib/node/$(PKG_NPM_NAME)/
-	$(INSTALL_DIR) $(1)/usr/lib/node/$(PKG_NPM_NAME)/build/Release
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/$(PKG_NPM_NAME)/build/Release/HID*.node \
-		$(1)/usr/lib/node/$(PKG_NPM_NAME)/build/Release/
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(LN) ../lib/node/$(PKG_NPM_NAME)/src/show-devices.js $(1)/usr/bin/hid-showdevices
-	$(INSTALL_DIR) $(1)/usr/lib/node_modules
-	$(LN) ../node/$(PKG_NPM_NAME) $(1)/usr/lib/node_modules/$(PKG_NPM_NAME)
-endef
-
-define Package/node-hid/postrm
-#!/bin/sh
-rm /usr/lib/node_modules/node-hid || true
-rm -rf /usr/lib/node/node-hid || true
+	mkdir -p $(1)/usr/lib/node/node-hid/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/ $(1)/usr/lib/node/
 endef
 
 $(eval $(call BuildPackage,node-hid))
+

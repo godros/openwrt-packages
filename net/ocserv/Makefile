@@ -8,16 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ocserv
-PKG_VERSION:=1.1.2
+PKG_VERSION:=0.12.4
 PKG_RELEASE:=1
 PKG_USE_MIPS16:=0
 
 PKG_BUILD_DIR :=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=ftp://ftp.infradead.org/pub/ocserv/
-PKG_HASH:=889ccdbe8e67d3bc2bc8713b7fbb5bd4e79228abc6054e88858cb4ad6d0245dd
+PKG_HASH:=05c01effa8a7c2f022616fcb62bade4df51aa7f0035248671da12819d62cb185
 
-PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE:=GPLv2+
 PKG_LICENSE_FILES:=COPYING
 #PKG_FIXUP:=autoreconf
 
@@ -54,9 +54,6 @@ endef
 
 EXTRA_CPPFLAGS+=-I$(STAGING_DIR)/usr/include/readline/
 EXTRA_LDFLAGS+=-lncurses
-
-CONFIGURE_VARS += \
-	ac_cv_file__proc_self_exe=yes
 
 CONFIGURE_ARGS+= \
 	--with-pager="" \
@@ -95,7 +92,6 @@ endef
 define Package/ocserv/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ocserv $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ocserv-worker $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ocserv-fw $(1)/usr/bin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ocpasswd/ocpasswd $(1)/usr/bin/

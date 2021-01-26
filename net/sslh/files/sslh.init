@@ -22,9 +22,9 @@ start_instance() {
 	# B) ssh parameter
 	config_get val "${section}" ssh
 	[ -n "${val}" ] && append args "--ssh ${val}"
-	# C) tls parameter
-	config_get val "${section}" tls
-	[ -n "${val}" ] && append args "--tls ${val}"
+	# C) ssl parameter
+	config_get val "${section}" ssl
+	[ -n "${val}" ] && append args "--ssl ${val}"
 	# D) openvpn parameter
 	config_get val "${section}" openvpn
 	 [ -n "${val}" ] && append args "--openvpn ${val}"
@@ -44,9 +44,6 @@ start_instance() {
 	 # I) sslh config file (cmd line args override file settings)
 	config_get val "${section}" configfile
 	[ -n "${val}" ] && append args "-F${val}"
-	# J) http parameter
-	config_get val "${section}" http
-	[ -n "${val}" ] && append args "--http ${val}"
 
 	# Defaults were removed for --user and --pidfile options
 	# in sslh 1.11; Define them here instead.

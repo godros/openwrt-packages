@@ -17,10 +17,10 @@ PKG_HASH:=6727060c918568ba2ff4295ad736128dba0b995d7b20491bca11f593bd857578
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
+
 PKG_CPE_ID:=cpe:/a:irssi:irssi
 
 PKG_FIXUP:=autoreconf
-PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
@@ -40,14 +40,16 @@ define Package/irssi/description
 	Irssi is a terminal based IRC client for UNIX systems.
 endef
 
-TARGET_LDFLAGS += -Wl,--gc-sections
-
 CONFIGURE_ARGS += \
-	--disable-glibtest \
+	--with-perl=no \
+	--with-glib-prefix="$(STAGING_DIR)/usr" \
+	--with-ssl="$(STAGING_DIR)/usr" \
 	--with-textui \
 	--without-bot \
-	--without-perl \
-	--without-proxy
+	--disable-proxy
+
+EXTRA_CFLAGS+=$(TARGET_CPPFLAGS)
+EXTRA_LDFLAGS+=-lncurses
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/irssi

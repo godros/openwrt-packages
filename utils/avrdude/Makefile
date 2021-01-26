@@ -31,7 +31,7 @@ define Package/avrdude
   SUBMENU:=Microcontroller programming
   TITLE:=AVR Downloader/UploaDEr
   URL:=https://www.nongnu.org/avrdude/
-  DEPENDS:=+libncurses +libreadline +libusb-compat +libftdi1 +libelf
+  DEPENDS:=+libncurses +libreadline +libusb-compat +libftdi1 +libelf1
 endef
 
 define Package/avrdude/description

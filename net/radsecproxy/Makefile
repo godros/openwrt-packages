@@ -8,20 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=radsecproxy
-PKG_VERSION:=1.8.1
-PKG_RELEASE:=2
+PKG_VERSION:=1.6.8
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/radsecproxy/radsecproxy/releases/download/$(PKG_VERSION)/
-PKG_HASH:=c6f9380f049818e71c129ee9bdfa20c8e0e3a13ca1c806643e0d44c310914e63
+PKG_SOURCE_URL:=http://software.uninett.no/radsecproxy/
+PKG_HASH:=9923203c3aaf17e31d5bc7a61b99e5a6aa0ef19a8397616f6ef9c0c41948f7d2
 
-PKG_MAINTAINER:=Toke Høiland-Jørgensen <toke@toke.dk>
-PKG_LICENSE:=BSD-3-CLAUSE
+PKG_LICENSE:=GPL-2.0+
 PKG_LICENSE_FILES:=LICENSE
-PKG_CPE_ID:=cpe:/a:uninett:radsecproxy
 
-PKG_FIXUP:=autoreconf
-PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
@@ -29,9 +25,10 @@ include $(INCLUDE_DIR)/package.mk
 define Package/radsecproxy
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:=+libopenssl +libpthread +libnettle
+  DEPENDS:=+libopenssl +libpthread
   TITLE:=radsecproxy
-  URL:=https://radsecproxy.github.io/
+  URL:=http://software.uninett.no/radsecproxy
+  MAINTAINER:=Toke Høiland-Jørgensen <toke@toke.dk>
 endef
 
 define Package/radsecproxy/description
@@ -40,6 +37,11 @@ endef
 
 CONFIGURE_ARGS+= \
 	--with-ssl="$(STAGING_DIR)/usr"
+
+#TARGET_CFLAGS += -ansi
+#TARGET_CFLAGS += -std=c99
+TARGET_CFLAGS += -Wno-long-long
+
 
 define Package/radsecproxy/install
 	$(INSTALL_DIR) $(1)/usr/sbin/

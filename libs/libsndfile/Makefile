@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007-2019 OpenWrt.org
+# Copyright (C) 2007-2018 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -12,13 +12,12 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/erikd/libsndfile.git
-PKG_SOURCE_DATE:=2019-04-21
-PKG_SOURCE_VERSION:=25824cb914fb3b79e18f31fb861e218c84be7d34
-PKG_MIRROR_HASH:=9b3beef70003456ff297ce50ecd5cb1d066ca98f10f6363562431d773b3fcb3d
+PKG_SOURCE_DATE:=2019-01-01
+PKG_SOURCE_VERSION:=42132c543358cee9f7c3e9e9b15bb6c1063a608e
+PKG_MIRROR_HASH:=07bb3605c8f655c29f4924823020c4f79a02dafc6229c7bce8a81debcacc63aa
 
 PKG_LICENSE:=LGPLv2.1
 PKG_LICENSE_FILES:=COPYING
-PKG_CPE_ID:=cpe:/a:libsndfile_project:libsndfile
 
 PKG_INSTALL:=1
 
@@ -31,6 +30,7 @@ define Package/libsndfile
   TITLE:=Library for reading/writing audio files
   URL:=http://www.mega-nerd.com/libsndfile/
   MAINTAINER:=Peter Wagner <tripolar@gmx.at>
+  DEPENDS:=@!avr32
 endef
 
 define Package/libsndfile/description

@@ -9,14 +9,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=debootstrap
-PKG_VERSION:=1.0.123
+PKG_VERSION:=1.0.92
 PKG_RELEASE:=1
+PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
 
 PKG_SOURCE:=$(PKG_NAME)-udeb_$(PKG_VERSION)_all.udeb
 PKG_SOURCE_URL:=http://ftp.debian.org/debian/pool/main/d/debootstrap
-PKG_HASH:=df537297f212a7ffab3bb033065a466887e552a579d4f7115f2d042a86ba811f
-
-PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
+PKG_HASH:=fa58c00529912d2cc187aa5434962376bd5ec00d3e7e9693f505a27b8848fdcf
 PKG_LICENSE:=Unique
 PKG_LICENSE_FILES:=debian/copyright
 
@@ -28,8 +27,8 @@ define Package/debootstrap
   SECTION:=admin
   CATEGORY:=Administration
   TITLE:=Bootstrap a basic Debian system
-  URL:=https://wiki.debian.org/Debootstrap
-  DEPENDS:= +coreutils +coreutils-chroot +coreutils-sha1sum +ar +xz-utils +xz
+  URL:=http://wiki.debian.org/Debootstrap
+  DEPENDS:= +coreutils +coreutils-chroot +coreutils-sha1sum +ar +xz
 endef
 
 define Package/debootstrap/description

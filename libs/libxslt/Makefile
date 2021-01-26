@@ -8,27 +8,25 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libxslt
-PKG_VERSION:=1.1.34
-PKG_RELEASE:=3
+PKG_VERSION:=1.1.32
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:= \
 	http://xmlsoft.org/sources/ \
 	ftp://fr.rpmfind.net/pub/libxml/
-PKG_HASH:=98b1bd46d6792925ad2dfe9a87452ea2adebf69dcb9919ffd55bf926a7f93f7f
+PKG_HASH:=526ecd0abaf4a7789041622c3950c0e7f2c4c8835471515fd77eec684a355460
 
-PKG_MAINTAINER:=Jiri Slachta <jiri@slachta.eu>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
 PKG_CPE_ID:=cpe:/a:xmlsoft:libxslt
 
+PKG_MAINTAINER:=Jiri Slachta <jiri@slachta.eu>
+
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
-HOST_BUILD_DEPENDS:=libxml2/host
 
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/host-build.mk
 
 define Package/libxslt
   SECTION:=libs
@@ -66,7 +64,8 @@ define Package/xsltproc/description
  XSLT XML transformation utility.
 endef
 
-CONFIGURE_ARGS += \
+CONFIGURE_ARGS+= \
+	--disable-silent-rules \
 	--enable-shared \
 	--enable-static \
 	--without-python \
@@ -74,17 +73,6 @@ CONFIGURE_ARGS += \
 	--without-debug \
 	--without-mem-debug \
 	--without-debugger \
-	--without-plugins
-
-HOST_CONFIGURE_ARGS += \
-	--with-libxml-prefix=$(STAGING_DIR_HOSTPKG) \
-	--without-python \
-	--without-crypto \
-	--without-debug \
-	--without-mem-debug \
-	--without-debugger \
-	--without-profiler \
-	--without-plugins
 
 define Build/InstallDev/Xslt
 	$(INSTALL_DIR) $(1)/usr/bin $(2)/bin $(1)/usr/include/libxslt \
@@ -162,4 +150,3 @@ endef
 $(eval $(call BuildPackage,libxslt))
 $(eval $(call BuildPackage,libexslt))
 $(eval $(call BuildPackage,xsltproc))
-$(eval $(call HostBuild))

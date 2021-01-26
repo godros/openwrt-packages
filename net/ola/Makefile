@@ -9,19 +9,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ola
-PKG_VERSION:=0.10.8
-PKG_RELEASE:=2
+PKG_VERSION:=0.10.6
+PKG_RELEASE:=3
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/OpenLightingProject/ola/tar.gz/$(PKG_VERSION)?
-PKG_HASH:=45bc101d1ddcc1c6320c063eb25a9345e5820a4233acfa5b29f2dfd99f7452e1
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/OpenLightingProject/ola.git
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=6e57342c414a72cdd721e8df5bc7967e17459647
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_MIRROR_HASH:=c1f36eaedcd9711e42fd362ff84d8e66eb40bc6af97de77129a5074d05fb9936
+PKG_LICENSE:=LGPL-2.1+
 
-PKG_MAINTAINER:=Christian Beier <dontmind@freeshell.org>
-PKG_LICENSE:=LGPL-2.1-or-later
-PKG_LICENSE_FILES:=COPYING
-
-PKG_FIXUP:=autoreconf
+PKG_FIXUP:=libtool
 PKG_INSTALL:=1
+
 PKG_BUILD_PARALLEL:=1
 PKG_USE_MIPS16:=0
 
@@ -36,7 +37,8 @@ define Package/ola
   CATEGORY:=Network
   TITLE:=Open Lighting Architecture Daemon
   URL:=https://www.openlighting.org/
-  DEPENDS:=+protobuf +libftdi1 +libusb-1.0 +libuuid +libstdcpp +libpthread +librt +zlib +libncurses +liblo +libmicrohttpd
+  MAINTAINER:=Christian Beier <dontmind@freeshell.org>
+  DEPENDS:=+protobuf +libusb-1.0 +libuuid +libstdcpp +libpthread +librt +zlib +libncurses +liblo +libmicrohttpd
 endef
 
 define Package/ola/description
@@ -51,21 +53,20 @@ CONFIGURE_ARGS += \
 	--disable-fatal-warnings \
 	--disable-unittests \
 	--without-dns-sd \
-	--with-ola-protoc-plugin="$(STAGING_DIR_HOSTPKG)/bin/ola_protoc_plugin"
+	--with-ola-protoc-plugin=$(STAGING_DIR_HOSTPKG)/bin/ola_protoc_plugin
 
 HOST_CONFIGURE_ARGS += \
 	--disable-all-plugins \
+	--disable-slp \
 	--disable-osc \
 	--disable-uart \
 	--disable-libusb \
+	--disable-libftdi \
 	--disable-http  \
 	--disable-examples \
 	--disable-unittests \
 	--disable-doxygen-html \
 	--disable-doxygen-doc
-
-HOST_LDFLAGS += -Wl,-rpath$(comma)$(STAGING_DIR_HOSTPKG)/lib
-TARGET_LDFLAGS += $(if $(CONFIG_USE_GLIBC),-lm)
 
 # only build the ola_protoc thingy
 define Host/Compile

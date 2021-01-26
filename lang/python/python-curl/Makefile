@@ -5,51 +5,41 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pycurl
-PKG_VERSION:=7.43.0.6
+PKG_VERSION:=7.43.0.1
 PKG_RELEASE:=1
-
-PYPI_NAME:=$(PKG_NAME)
-PKG_HASH:=8301518689daefa53726b59ded6b48f33751c383cf987b0ccfbbc4ed40281325
-
 PKG_MAINTAINER:=Waldemar Konik <informatyk74@interia.pl>
 PKG_LICENSE:=LGPL-2.1
-PKG_LICENSE_FILES:=COPYING-LGPL
+PKG_LICENSE_FILE=COPYING-LGPL
 
-include ../pypi.mk
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://dl.bintray.com/pycurl/pycurl/
+PKG_HASH:=43231bf2bafde923a6d9bb79e2407342a5f3382c1ef0a3b2e491c6a4e50b91aa
+
 include $(INCLUDE_DIR)/package.mk
-include ../python3-package.mk
+include ../python-package.mk
 
-define Package/python3-curl
+define Package/python-curl
   CATEGORY:=Languages
   SECTION:=lang
   SUBMENU:=Python
   TITLE:=Python module interface to the cURL library
   URL:=http://pycurl.io/
-  DEPENDS:=+libcurl +python3
+  DEPENDS:=+python +libcurl
 endef
 
-define Package/python3-curl/description
-PycURL is a Python interface to libcurl, the multiprotocol file transfer library.
+define Package/python-curl/description
+Python module interface to the cURL library.
 endef
 
-PYTHON3_PKG_SETUP_ARGS:=
+define Build/Compile
+	$(call Build/Compile/PyMod,,install --prefix=/usr --root=$(PKG_INSTALL_DIR))
+endef
 
-ifdef CONFIG_LIBCURL_OPENSSL
-  PYTHON3_PKG_SETUP_ARGS+=--with-openssl
-endif
+define Package/python-curl/install
+	$(INSTALL_DIR) $(1)$(PYTHON_PKG_DIR)
+	$(CP) \
+		$(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/* \
+		$(1)$(PYTHON_PKG_DIR)
+endef
 
-ifdef CONFIG_LIBCURL_GNUTLS
-  PYTHON3_PKG_SETUP_ARGS+=--with-gnutls
-endif
-
-ifdef CONFIG_LIBCURL_MBEDTLS
-  PYTHON3_PKG_SETUP_ARGS+=--with-mbedtls
-endif
-
-ifdef CONFIG_LIBCURL_WOLFSSL
-  PYTHON3_PKG_SETUP_ARGS+=--with-wolfssl
-endif
-
-$(eval $(call Py3Package,python3-curl))
-$(eval $(call BuildPackage,python3-curl))
-$(eval $(call BuildPackage,python3-curl-src))
+$(eval $(call BuildPackage,python-curl))

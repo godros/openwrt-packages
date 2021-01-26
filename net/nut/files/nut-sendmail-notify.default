@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. "${IPKG_INSTROOT}"/lib/functions.sh
+. /lib/functions.sh
 
 REMOVEDEFAULTNOTIFY=0
 SKIPADDSYSLOG=0

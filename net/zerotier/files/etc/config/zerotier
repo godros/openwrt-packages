@@ -7,9 +7,6 @@ config zerotier sample_config
 
 	#option port '9993'
 
-	# path to the local.conf
-	#option local_conf '/etc/zerotier.conf'
-
 	# Generate secret on first start
 	option secret ''
 

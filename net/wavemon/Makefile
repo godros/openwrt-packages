@@ -8,19 +8,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wavemon
-PKG_VERSION:=0.9.2
+PKG_VERSION:=0.8.2
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/uoaerg/wavemon/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=13334ff17720ba4d17f4658dd2b93a50a6b5bc0583dedd72b88fd0cb90db686a
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_MIRROR_HASH:=4199e2ad11a036f4289f5ad42a8b0fe518f2b5ff77447f4c366dbcf3f23e91d5
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_URL:=https://github.com/uoaerg/wavemon.git
+PKG_SOURCE_VERSION:=v$(PKG_VERSION)
 
-PKG_MAINTAINER:=Jonathan McCrohan <jmccrohan@gmail.com>
-PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE:=GPL-2.0+
 PKG_LICENSE_FILES:=COPYING
+PKG_MAINTAINER:=Jonathan McCrohan <jmccrohan@gmail.com>
 
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -29,7 +32,7 @@ define Package/wavemon
   CATEGORY:=Network
   TITLE:=N-curses based wireless network devices monitor
   DEPENDS:=+libncurses +libpthread +libnl-genl
-  SUBMENU:=Wireless
+  SUBMENU:=wireless
   URL:=https://github.com/uoaerg/wavemon/releases
 endef
 
@@ -40,10 +43,14 @@ define Package/wavemon/description
   and higher), e.g. the Lucent Orinoco cards.
 endef
 
-CONFIGURE_ARGS += --without-libcap
+CONFIGURE_VARS += \
+	ac_cv_lib_cap_cap_get_flag=no \
+	BUILD_DATE=$(SOURCE_DATE_EPOCH)
 
-TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include/libnl3
-TARGET_LDFLAGS += $(if $(CONFIG_USE_GLIBC),-lpthread)
+TARGET_CFLAGS += -pthread -I$(STAGING_DIR)/usr/include/libnl3
+
+MAKE_FLAGS += \
+	CFLAGS="$(TARGET_CFLAGS) -L$(STAGING_DIR)/usr/lib -I$(STAGING_DIR)/usr/include"
 
 define Package/wavemon/install
 	$(INSTALL_DIR) $(1)/usr/bin

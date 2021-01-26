@@ -1,4 +1,6 @@
 #
+# Copyright (C) 2009-2015 OpenWrt.org
+#
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
@@ -6,23 +8,25 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=grilo
-PKG_VERSION:=0.3.13
-PKG_RELEASE:=1
+PKG_VERSION:=0.3.4
+PKG_RELEASE:=3
+
+PKG_MAINTAINER:=W. Michael Petullo <mike@flyn.org>
+
+PKG_LICENSE:=LGPLv2.1
+PKG_LICENSE_FILES:=COPYING
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNOME/grilo/0.3/
-PKG_HASH:=d14837f22341943ed8a189d9f0827a17016b802d18d0ed080e1413de0fdc927b
+PKG_HASH:=7c6964053b42574c2f14715d2392a02ea5cbace955eb73e067c77aa3e43b066e
 
-PKG_MAINTAINER:=W. Michael Petullo <mike@flyn.org>
-PKG_LICENSE:=LGPL-2.1-or-later
-PKG_LICENSE_FILES:=COPYING
+PKG_BUILD_DEPENDS:=glib2 libsoup libxml2
 
 PKG_INSTALL:=1
 PKG_BUILD_DEPENDS:=vala/host
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
-include ../../devel/meson/meson.mk
 
 define Package/grilo
   SECTION:=multimedia
@@ -34,16 +38,8 @@ endef
 
 define Package/grilo/decription
   Grilo is a framework that provides access to different sources of
-  multimedia content, using a pluggable system.
+  multimedia content, using a pluggable system. 
 endef
-
-MESON_ARGS += \
-	-Denable-grl-net=true \
-	-Denable-grl-pls=false \
-	-Denable-gtk-doc=false \
-	-Denable-introspection=false \
-	-Denable-test-ui=false \
-	-Denable-vala=false
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/

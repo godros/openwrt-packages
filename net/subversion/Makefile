@@ -1,4 +1,6 @@
 #
+# Copyright (C) 2007-2017 OpenWrt.org
+#
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
@@ -6,22 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=subversion
-PKG_VERSION:=1.14.0
-PKG_RELEASE:=2
+PKG_VERSION:=1.10.6
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=@APACHE/subversion
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_HASH:=6ba8e218f9f97a83a799e58a3c6da1221d034b18d9d8cbbcb6ec52ab11722102
+PKG_HASH:=18c8e72691e6d2e7d3137ae4ad98b9f8977cca5eb2504fab48d55e584b10eca7
 
 PKG_MAINTAINER:=Val Kulkov <val.kulkov@gmail.com>
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE
-PKG_CPE_ID:=cpe:/a:apache:subversion
 
 PKG_FIXUP:=autoreconf
 PKG_MACRO_PATHS:=build/ac-macros
-PKG_BUILD_PARALLEL:=1
-PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
@@ -31,7 +30,8 @@ define Package/subversion/Default
   CATEGORY:=Network
   SUBMENU:=Version Control Systems
   TITLE:=A compelling replacement for CVS
-  DEPENDS:=+PACKAGE_unixodbc:unixodbc +libaprutil +libmagic +libsqlite3 $(ICONV_DEPENDS) $(INTL_DEPENDS)
+  DEPENDS:=+zlib +libsqlite3 +PACKAGE_unixodbc:unixodbc +libapr +libaprutil +libmagic \
+  	$(ICONV_DEPENDS) $(INTL_DEPENDS)
   URL:=https://subversion.apache.org/
 endef
 
@@ -79,7 +79,14 @@ define Package/subversion-server/conffiles
 /etc/config/subversion
 endef
 
+TARGET_CFLAGS += $(FPIC)
+TARGET_CPPFLAGS += -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
+APU_LIBS=$(shell $(STAGING_DIR)/usr/bin/apu-1-config --link-libtool --libs)
+
 CONFIGURE_ARGS += \
+	--with-apr="$(STAGING_DIR)/usr/bin/apr-1-config" \
+	--with-apr-util="$(STAGING_DIR)/usr/bin/apu-1-config" \
+	--with-libmagic="$(STAGING_DIR)/usr" \
 	--disable-mod-activation \
 	--without-ruby-sitedir \
 	--without-swig \
@@ -89,10 +96,24 @@ CONFIGURE_ARGS += \
 	--without-apxs \
 	--without-sasl \
 	--with-lz4=internal \
-	--with-utf8proc=internal \
-	$(call autoconf_bool,INTL_FULL,nls)
+	--with-utf8proc=internal
 
-TARGET_LDFLAGS += $(if $(INTL_FULL),-lintl)
+ifdef $(INTL_FULL)
+	CONFIGURE_ARGS += --enable-nls
+else
+	CONFIGURE_ARGS += --disable-nls
+endif
+
+CONFIGURE_VARS += \
+	LDFLAGS="$(TARGET_LDFLAGS) $(APU_LIBS) -lcrypt -lm \
+		-lz -lpthread $(if $(INTL_FULL),-lintl)"
+	CPPFLAGS="$(TARGET_CPPFLAGS)"
+
+define Build/Compile
+	$(MAKE) -C $(PKG_BUILD_DIR) \
+		DESTDIR="$(PKG_INSTALL_DIR)" \
+		all local-install
+endef
 
 define Package/subversion-libs/install
 	$(INSTALL_DIR) $(1)/usr/lib

@@ -11,7 +11,7 @@ nut_upsmon_conf() {
 
 	echo "# Config file automatically generated from UCI config" > "$UPSMON_C"
 
-	config_get RUNAS "$cfg" runas "nutmon"
+	config_get RUNAS "$cfg" runas
 	[ -n "$RUNAS" ] && echo "RUN_AS_USER $RUNAS" >> "$UPSMON_C"
 	runas="$RUNAS"
 
@@ -87,18 +87,16 @@ nut_upsmon_conf() {
 	val=""
 	config_list_foreach "$cfg" defaultnotify notifylist
 	default="$optval"
-	{
-		echo "NOTIFYFLAG ONLINE $(setnotify "$cfg" onlinenotify)" ; \
-		echo "NOTIFYFLAG ONBATT $(setnotify "$cfg" onbattnotify)" ; \
-		echo "NOTIFYFLAG LOWBATT $(setnotify "$cfg" lowbatnotify)" ; \
-		echo "NOTIFYFLAG FSD $(setnotify "$cfg" fsdnotify)" ; \
-		echo "NOTIFYFLAG COMMOK $(setnotify "$cfg" commoknotify)" ; \
-		echo "NOTIFYFLAG COMMBAD $(setnotify "$cfg" commbadnotify)" ; \
-		echo "NOTIFYFLAG SHUTDOWN $(setnotify "$cfg" shutdownnotify)" ; \
-		echo "NOTIFYFLAG REPLBATT $(setnotify "$cfg" repolbattnotify)" ; \
-		echo "NOTIFYFLAG NOCOMM $(setnotify "$cfg" nocommnotify)" ; \
-		echo "NOTIFYFLAG NOPARENT $(setnotify "$cfg" noparentnotify)" ; \
-	} >> "$UPSMON_C"
+	echo "NOTIFYFLAG ONLINE $(setnotify "$cfg" onlinenotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG ONBATT $(setnotify "$cfg" onbattnotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG LOWBATT $(setnotify "$cfg" lowbatnotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG FSD $(setnotify "$cfg" fsdnotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG COMMOK $(setnotify "$cfg" commoknotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG COMMBAD $(setnotify "$cfg" commbadnotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG SHUTDOWN $(setnotify "$cfg" shutdownnotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG REPLBATT $(setnotify "$cfg" repolbattnotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG NOCOMM $(setnotify "$cfg" nocommnotify)" >> "$UPSMON_C"
+	echo "NOTIFYFLAG NOPARENT $(setnotify "$cfg" noparentnotify)" >> "$UPSMON_C"
 
 	config_get val "$cfg" rbwarntime 43200
 	echo "RBWARNTIME $val" >> "$UPSMON_C"
@@ -158,11 +156,11 @@ build_config() {
 	[ ! -s /var/etc/nut/nut.conf ] && {
 		echo "MODE=netclient" >>/var/etc/nut/nut.conf
 		chmod 640 /var/etc/nut/nut.conf
-		chgrp "$(id -gn "${runas:-nutmon}")" /var/etc/nut/nut.conf
+		chgrp $(id -gn ${runas:-root}) /var/etc/nut/nut.conf
 	}
 
 	[ -s "$UPSMON_C" ] && chmod 640 "$UPSMON_C"
-	[ -s "$UPSMON_C" ] && chgrp "$(id -gn "${runas:-nutmon}")" "$UPSMON_C"
+	[ -s "$UPSMON_C" ] && chgrp $(id -gn ${runas:-root}) "$UPSMON_C"
 }
 
 interface_triggers() {
@@ -192,12 +190,12 @@ interface_triggers() {
 }
 
 start_service() {
-	local runas=nutmon
+	local runas
 	local havemon havems
 	build_config
 
-	[ "$havemon" != 1 ] && return 1
-	[ "$havems" != 1 ] && return 1
+	[ "$havemon" != 1 ] && return
+	[ "$havems" != 1 ] && return
 	interface_triggers "check_interface_up" || return 0
 
 	procd_open_instance "upsmon"
@@ -206,13 +204,11 @@ start_service() {
 	procd_set_param stdout 0
 	procd_set_param command /usr/sbin/upsmon -D
 	procd_close_instance
-
-	return 0
 }
 
 reload_service() {
 	if pgrep upsmon >/dev/null 2>/dev/null; then
-		local runas=nutmon
+		local runas
 		build_config
 		/usr/sbin/upsmon -c reload
 	else

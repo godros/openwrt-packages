@@ -8,35 +8,29 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ulogd
-PKG_VERSION:=2.0.7
-PKG_RELEASE:=6
+PKG_VERSION:=2.0.5
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=https://netfilter.org/projects/ulogd/files/ \
-	ftp://ftp.netfilter.org/pub/ulogd/
-PKG_HASH:=990a05494d9c16029ba0a83f3b7294fc05c756546b8d60d1c1572dc25249a92b
+PKG_SOURCE_URL:=ftp://ftp.netfilter.org/pub/ulogd/ \
+	ftp://ftp.be.netfilter.org/pub/netfilter/ulogd/ \
+	ftp://ftp.de.netfilter.org/pub/netfilter/ulogd/ \
+	ftp://ftp.no.netfilter.org/pub/netfilter/ulogd/
+PKG_HASH:=a221cb9f77347c0ca00d0937e27c1b90e3291a553cc62a4139b788e2e420e8c0
 
-PKG_MAINTAINER:=Alexandru Ardelean <ardeleanalex@gmail.com>
-PKG_LICENSE:=GPL-2.0-only
+PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
+PKG_MAINTAINER:=Nicolas Thill <nico@openwrt.org>
 
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
-
-PKG_BUILD_DEPENDS:=libnetfilter-acct libnetfilter-conntrack libnetfilter-log
-PKG_CONFIG_DEPENDS:= \
-	CONFIG_PACKAGE_ulogd-mod-dbi \
-	CONFIG_PACKAGE_ulogd-mod-mysql \
-	CONFIG_PACKAGE_ulogd-mod-pgsql \
-	CONFIG_PACKAGE_ulogd-mod-sqlite
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/ulogd/Default
   SECTION:=net
   CATEGORY:=Network
-  URL:=https://www.netfilter.org/projects/ulogd/index.html
+  URL:=http://www.netfilter.org/projects/ulogd/index.html
 endef
 
 define Package/ulogd
@@ -122,10 +116,21 @@ define Package/ulogd-mod-extra
   TITLE:=Extra plugins
 endef
 
+PKG_BUILD_DEPENDS:=libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+
+PKG_CONFIG_DEPENDS:= \
+	CONFIG_PACKAGE_ulogd-mod-dbi \
+	CONFIG_PACKAGE_ulogd-mod-mysql \
+	CONFIG_PACKAGE_ulogd-mod-pgsql \
+	CONFIG_PACKAGE_ulogd-mod-sqlite \
+
+TARGET_CFLAGS += \
+	-D_GNU_SOURCE \
+
 CONFIGURE_ARGS += \
 	--enable-nfacct \
 	--enable-nfct \
-	--enable-nflog
+	--enable-nflog \
 
 ifneq ($(DEVELOPER)$(SDK)$(CONFIG_PACKAGE_ulogd-mod-dbi),)
 	CONFIGURE_ARGS += --with-dbi \
@@ -136,9 +141,7 @@ else
 endif
 
 ifneq ($(DEVELOPER)$(SDK)$(CONFIG_PACKAGE_ulogd-mod-mysql),)
-	CONFIGURE_ARGS += \
-		--with-mysql-inc=$(STAGING_DIR)/usr/include/mysql \
-		--with-mysql-lib=$(STAGING_DIR)/usr/lib/mysql
+	CONFIGURE_ARGS += --with-mysql="$(STAGING_DIR)/usr"
 else
 	CONFIGURE_ARGS += --without-mysql
 endif
@@ -189,7 +192,6 @@ ULOGD_EXTRA_PLUGINS:= \
 	inppkt_UNIXSOCK \
 	output_GPRINT \
 	output_GRAPHITE \
-	output_IPFIX \
 	output_LOGEMU \
 	output_OPRINT \
 

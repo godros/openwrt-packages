@@ -8,25 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lcd4linux
-PKG_RELEASE:=5
+PKG_REV:=1204
+PKG_VERSION:=r$(PKG_REV)
+PKG_RELEASE:=1
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/feckert/lcd4linux
-PKG_SOURCE_DATE:=2019-07-19
-PKG_SOURCE_VERSION:=0b83bb3a81e7e7f5c0aa1daa6f5b9abca538fd47
-PKG_MIRROR_HASH:=26a3469bce0648b276e2c818add7049685c7f461ea9669d23730dfc3a96d9934
-
-PKG_MAINTAINER:=Florian Eckert <fe@dev.tdt.de>
-PKG_LICENSE:=GPL-2.0-or-later
-PKG_LICENSE_FILES:=COPYING
-
-PKG_FIXUP:=autoreconf
-PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
-
-PKG_CONFIG_DEPENDS:= \
-	$(patsubst %,CONFIG_LCD4LINUX_CUSTOM_DRIVER_%,$(LCD4LINUX_DRIVERS)) \
-	$(patsubst %,CONFIG_LCD4LINUX_CUSTOM_PLUGIN_%,$(LCD4LINUX_PLUGINS)) \
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE_URL:=https://ssl.bulix.org/svn/lcd4linux/trunk/
+PKG_SOURCE_SUBDIR:=lcd4linux-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=$(PKG_REV)
+PKG_SOURCE_PROTO:=svn
 
 LCD4LINUX_DRIVERS:= \
 	ASTUSB \
@@ -122,7 +112,22 @@ LCD4LINUX_PLUGINS:= \
 	w1retap \
 	$(if $(CONFIG_BROKEN),wireless) \
 	xmms \
-#	python
+#	python \
+
+PKG_FIXUP:=autoreconf
+PKG_INSTALL:=1
+
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+
+PKG_BUILD_DEPENDS:= \
+	ppp \
+#	libftdi \
+#	libX11 \
+#	python \
+
+PKG_CONFIG_DEPENDS:= \
+	$(patsubst %,CONFIG_LCD4LINUX_CUSTOM_DRIVER_%,$(LCD4LINUX_DRIVERS)) \
+	$(patsubst %,CONFIG_LCD4LINUX_CUSTOM_PLUGIN_%,$(LCD4LINUX_PLUGINS)) \
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
@@ -130,6 +135,7 @@ include $(INCLUDE_DIR)/nls.mk
 define Package/lcd4linux/Default
   SECTION:=utils
   CATEGORY:=Utilities
+  PKG_MAINTAINER:=Jonathan McCrohan <jmccrohan@gmail.com>
   TITLE:=LCD display utility
   URL:=http://lcd4linux.bulix.org/
 endef
@@ -198,9 +204,11 @@ endef
 
 
 CONFIGURE_ARGS+= \
-	--disable-rpath
+	--disable-rpath \
 
 TARGET_CFLAGS += -std=gnu89
+
+EXTRA_LDFLAGS+= -Wl,-rpath-link,$(STAGING_DIR)/usr/lib
 
 ifeq ($(BUILD_VARIANT),custom)
 
@@ -261,7 +269,7 @@ ifeq ($(BUILD_VARIANT),full)
 	--with-plugins="$(LCD4LINUX_FULL_PLUGINS)" \
 	--with-libiconv-prefix="$(ICONV_PREFIX)" \
 	--without-python \
-	--without-x
+	--without-x \
 
   EXTRA_LDFLAGS+= -L$(STAGING_DIR)/usr/lib/mysql
 

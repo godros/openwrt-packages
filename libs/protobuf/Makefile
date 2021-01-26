@@ -8,94 +8,52 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=protobuf
-PKG_VERSION:=3.14.0
-PKG_RELEASE:=2
+PKG_VERSION:=3.3.0
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-cpp-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/google/protobuf/releases/download/v$(PKG_VERSION)
-PKG_HASH:=50ec5a07c0c55d4ec536dd49021f2e194a26bfdbc531d03d1e9d4d3e27175659
+PKG_HASH:=578a2589bf9258adb03245dec5d624b61536867ebb732dbb8aeb30d96b0ada1f
 
-PKG_MAINTAINER:=Ken Keys <kkeys@caida.org>
 PKG_LICENSE:=BSD-3-Clause
 PKG_LICENSE_FILES:=LICENSE
-PKG_CPE_ID:=cpe:/a:google:protobuf
 
-HOST_BUILD_PARALLEL:=1
-PKG_BUILD_PARALLEL:=1
-CMAKE_SOURCE_SUBDIR:=cmake
+PKG_BUILD_DEPENDS:=protobuf/host
+PKG_USE_MIPS16:=0# MIPS16 prevents protobuf's usage of the 'sync' asm-opcode
+
+PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
-include $(INCLUDE_DIR)/cmake.mk
 
-define Package/protobuf/Default
+define Package/protobuf
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=A structured data encoding library
   URL:=https://github.com/google/protobuf
-  DEPENDS:=+zlib +libpthread +libatomic +libstdcpp
-endef
-
-define Package/protobuf
-  $(call Package/protobuf/Default)
-  DEPENDS+=+protobuf-lite
-endef
-
-define Package/protobuf-lite
-  $(call Package/protobuf/Default)
-endef
-
-define Package/protobuf/description/Default
-Protocol Buffers are a way of encoding structured data in an efficient
-yet extensible format. Google uses Protocol Buffers for almost all
-of its internal RPC protocols and file formats.
+  DEPENDS:=+zlib +libpthread +libstdcpp
+  MAINTAINER:=Per Sandström <per.j.sandstrom@gmail.com>
 endef
 
 define Package/protobuf/description
-$(call Package/protobuf/description/Default)
-
-This package provides the libprotoc, libprotobuf, and libprotobuf-lite
-libraries.  For a much smaller protobuf package, see "protobuf-lite".
-
+ Protocol Buffers are a way of encoding structured data in an efficient
+ yet extensible format. Google uses Protocol Buffers for almost all
+ of its internal RPC protocols and file formats.
 endef
 
-define Package/protobuf-lite/description
-$(call Package/protobuf/description/Default)
-
-This package provides the libprotobuf-lite library.
-
-endef
-
-CMAKE_HOST_OPTIONS += \
-	-Dprotobuf_BUILD_PROTOC_BINARIES=ON \
-	-Dprotobuf_BUILD_TESTS=OFF \
-	-DBUILD_SHARED_LIBS=ON \
-	-DCMAKE_SKIP_RPATH=OFF \
-	-DCMAKE_INSTALL_LIBDIR=lib \
-	-DCMAKE_INSTALL_RPATH="${STAGING_DIR_HOSTPKG}/lib"
-
-CMAKE_OPTIONS += \
-	-Dprotobuf_BUILD_PROTOC_BINARIES=ON \
-	-Dprotobuf_BUILD_TESTS=OFF \
-	-Dprotobuf_WITH_ZLIB=ON \
-	-DBUILD_SHARED_LIBS=ON
-
-TARGET_LDFLAGS += -latomic $(if $(CONFIG_USE_GLIBC),-lm)
+CONFIGURE_ARGS += --with-protoc=$(STAGING_DIR_HOSTPKG)/bin/protoc
 
 define Build/InstallDev
-	$(call Build/InstallDev/cmake,$(1))
-	$(SED) 's,/usr/include,$$$${prefix}/include,g' $(1)/usr/lib/pkgconfig/protobuf.pc
-	$(SED) 's,/usr/lib,$$$${exec_prefix}/lib,g' $(1)/usr/lib/pkgconfig/protobuf.pc
-	$(SED) 's,/usr/include,$$$${prefix}/include,g' $(1)/usr/lib/pkgconfig/protobuf-lite.pc
-	$(SED) 's,/usr/lib,$$$${exec_prefix}/lib,g' $(1)/usr/lib/pkgconfig/protobuf-lite.pc
-endef
-
-define Package/protobuf-lite/install
 	$(INSTALL_DIR) \
-		$(1)/usr/lib
+		$(1)/usr/lib \
+		$(1)/usr/include
 
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libprotobuf-lite.so* \
+		$(PKG_INSTALL_DIR)/usr/include/* \
+		$(1)/usr/include/
+
+	$(CP) \
+		$(PKG_INSTALL_DIR)/usr/lib/* \
 		$(1)/usr/lib/
 endef
 
@@ -108,10 +66,13 @@ define Package/protobuf/install
 		$(1)/usr/lib/
 
 	$(CP) \
+		$(PKG_INSTALL_DIR)/usr/lib/libprotobuf-lite.so* \
+		$(1)/usr/lib/
+
+	$(CP) \
 		$(PKG_INSTALL_DIR)/usr/lib/libprotobuf.so* \
 		$(1)/usr/lib/
 endef
 
 $(eval $(call BuildPackage,protobuf))
-$(eval $(call BuildPackage,protobuf-lite))
 $(eval $(call HostBuild))

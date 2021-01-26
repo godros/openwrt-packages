@@ -8,19 +8,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=youtube-dl
-PKG_VERSION:=2020.12.7
+PKG_VERSION:=2020.3.24
 PKG_RELEASE:=1
 
-PYPI_NAME:=youtube_dl
-PKG_HASH:=bd127c3251a8e9f7a0eb18e4bbcf98409c0365354f735c985325bc19af669a24
+PKG_SOURCE:=youtube_dl-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://files.pythonhosted.org/packages/source/y/youtube_dl/
+PKG_HASH:=4b03efe439f7cae26eba909821d1df00a9a4eb82741cb2e8b78fe29702bd4633
 
-PKG_MAINTAINER:=Josef Schlehofer <pepe.schlehofer@gmail.com>
+PKG_BUILD_DIR:=$(BUILD_DIR)/youtube_dl-$(PKG_VERSION)
+
 PKG_LICENSE:=Unlicense
 PKG_LICENSE_FILES:=LICENSE
+PKG_MAINTAINER:=Adrian Panella <ianchi74@outlook.com>, Josef Schlehofer <pepe.schlehofer@gmail.com>
 
-include ../../lang/python/pypi.mk
 include $(INCLUDE_DIR)/package.mk
-include ../../lang/python/python3-package.mk
+include ../../lang/python/python-package.mk
 
 define Package/youtube-dl
   SECTION:=multimedia
@@ -29,20 +31,26 @@ define Package/youtube-dl
   URL:=https://yt-dl.org
   DEPENDS:= \
     +ca-certificates \
-    +python3 \
-    +python3-email \
-    +python3-xml \
-    +python3-codecs \
-    +python3-ctypes \
-    +python3-setuptools
+    +python \
+    +python-email \
+    +python-xml \
+    +python-codecs \
+    +python-ctypes \
+    +python-setuptools
+  VARIANT:=python
 endef
 
 define Package/youtube-dl/description
   youtube-dl is a small command-line program to download videos
   from YouTube.com and other video sites.
-  It requires the Python3 interpreter.
+  It requires the Python interpreter.
 endef
 
-$(eval $(call Py3Package,youtube-dl))
+define PyPackage/youtube-dl/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(CP) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin
+endef
+
+$(eval $(call PyPackage,youtube-dl))
 $(eval $(call BuildPackage,youtube-dl))
 $(eval $(call BuildPackage,youtube-dl-src))

@@ -1,5 +1,5 @@
 #config upsmon 'upsmon'
-#	option runas nutmon
+#	option runas run-as-user
 #	option minsupplies 1
 #	option shutdowncmd '/usr/sbin/nutshutdown'
 #	option notifycmd /path/to/cmd

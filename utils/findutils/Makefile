@@ -1,4 +1,4 @@
-#
+# 
 # Copyright (C) 2006-2016 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -7,16 +7,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=findutils
-PKG_VERSION:=4.7.0
-PKG_RELEASE:=3
+PKG_VERSION:=4.6.0
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
-PKG_HASH:=c5fefbdf9858f7e4feb86f036e1247a54c79fc2d8e4b7064d5aaa1f47dfa789a
-
-PKG_LICENSE:=GPL-3.0-or-later
-PKG_LICENSE_FILES:=COPYING
-PKG_CPE_ID:=cpe:/a:gnu:findutils
+PKG_HASH:=ded4c9f73731cd48fec3b6bdaccce896473b6d8e337e9612e16cf1431bb1169d
+PKG_MAINTAINER:=Daniel Dickinson <lede@daniel.thecshore.com>
 
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
@@ -24,10 +21,9 @@ PKG_INSTALL:=1
 include $(INCLUDE_DIR)/package.mk
 
 define Package/findutils/Default
-	TITLE:=GNU Find Utilities
+	TITLE:=GNU findutils
 	SECTION:=utils
 	CATEGORY:=Utilities
-	URL:=https://www.gnu.org/software/findutils/
 endef
 
 define Package/findutils/description/Default
@@ -37,59 +33,56 @@ sufficient functionality, but some users may want or need
 the full functionality of the GNU tools.
 endef
 
-define Package/findutils
-	$(call Package/findutils/Default)
-	TITLE+= (all)
-	DEPENDS:= \
-	+findutils-find \
-	+findutils-xargs \
-	+findutils-locate
-endef
-
 define Package/findutils-find
 	$(call Package/findutils/Default)
-	TITLE+= - find utility
-	ALTERNATIVES:=300:/usr/bin/find:/usr/libexec/find-findutils
+	TITLE+= (find)
+endef
+
+define Package/findutils-find/description
+$(call Package/findutils/description/Default)
+This package contains the find utility
 endef
 
 define Package/findutils-xargs
 	$(call Package/findutils/Default)
-	TITLE+= - xargs utility
-	ALTERNATIVES:=300:/usr/bin/xargs:/usr/libexec/xargs-findutils
+	TITLE := (xargs)
+endef
+
+define Package/findutils-xargs/description
+$(call Package/findutils/description/Default)
+This package contains the xargs utility
 endef
 
 define Package/findutils-locate
 	$(call Package/findutils/Default)
-	TITLE+= - locate and updatedb utility
+	TITLE := (locate)
 endef
 
-CONFIGURE_ARGS += \
-	--localstatedir=/srv/var \
-	--without-selinux
+define Package/findutils-locate/description
+$(call Package/findutils/description/Default)
+This package contains the locate and related updatedb utility
+endef
+
+CONFIGURE_ARGS += --localstatedir=/srv/var
 CONFIGURE_VARS += ac_cv_path_SORT=sort
 
-define Package/findutils/install
-	true
-endef
-
 define Package/findutils-find/install
-	$(INSTALL_DIR) $(1)/usr/libexec
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/find $(1)/usr/libexec/find-findutils
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/find $(1)/usr/bin/	
 endef
 
 define Package/findutils-xargs/install
-	$(INSTALL_DIR) $(1)/usr/libexec
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/xargs $(1)/usr/libexec/xargs-findutils
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/xargs $(1)/usr/bin/	
 endef
 
 define Package/findutils-locate/install
 	$(INSTALL_DIR) $(1)/usr/bin $(1)/srv/var
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/locate $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/updatedb $(1)/usr/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/locate $(1)/usr/bin/	
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/updatedb $(1)/usr/bin/	
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib $(1)/usr/
 endef
 
-$(eval $(call BuildPackage,findutils))
 $(eval $(call BuildPackage,findutils-find))
-$(eval $(call BuildPackage,findutils-locate))
 $(eval $(call BuildPackage,findutils-xargs))
+$(eval $(call BuildPackage,findutils-locate))

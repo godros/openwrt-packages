@@ -7,34 +7,41 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=python-openpyxl
-PKG_VERSION:=3.0.6
+PKG_NAME:=openpyxl
+PKG_VERSION:=2.5.0b1
 PKG_RELEASE:=1
-
-PKG_MAINTAINER:=Alexandru Ardelean <ardeleanalex@gmail.com>
 PKG_LICENSE:=MIT
-PKG_LICENSE_FILES:=LICENCE.rst
 
-PYPI_NAME:=openpyxl
-PKG_HASH:=b229112b46e158b910a5d1b270b212c42773d39cab24e8db527f775b82afc041
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://pypi.python.org/packages/88/3c/34fbe561fc92e6a75f297478b123c2590ca986d9f2d2dbf340d879aa24dd/
+PKG_HASH:=3b42ece7933b46b2128f8d4111c57c80fb5aa46f4d16e7f83281f169e7398ba7
 
-include ../pypi.mk
 include $(INCLUDE_DIR)/package.mk
-include ../python3-package.mk
+include ../python-package.mk
 
-define Package/python3-openpyxl
+define Package/openpyxl
   SUBMENU:=Python
   SECTION:=lang
   CATEGORY:=Languages
+  MAINTAINER:=Gergely Kiss <mail.gery@gmail.com>
   TITLE:=A Python library to read/write Excel 2010 xlsx/xlsm files
   URL:=https://openpyxl.readthedocs.org/
-  DEPENDS:=+python3 +python3-defusedxml +python3-et_xmlfile +python3-jdcal
+  DEPENDS:=+python +django
 endef
 
-define Package/python3-openpyxl/description
+define Package/openpyxl/description
   A Python library to read/write Excel 2010 xlsx/xlsm files
 endef
 
-$(eval $(call Py3Package,python3-openpyxl))
-$(eval $(call BuildPackage,python3-openpyxl))
-$(eval $(call BuildPackage,python3-openpyxl-src))
+define Build/Compile
+	$(call Build/Compile/PyMod,,install --prefix=/usr --root=$(PKG_INSTALL_DIR))
+endef
+
+define Package/openpyxl/install
+	$(INSTALL_DIR) $(1)$(PYTHON_PKG_DIR)
+	$(CP) \
+	    $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/* \
+	    $(1)$(PYTHON_PKG_DIR)
+endef
+
+$(eval $(call BuildPackage,openpyxl))

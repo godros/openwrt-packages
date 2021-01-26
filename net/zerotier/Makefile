@@ -6,21 +6,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=zerotier
-PKG_VERSION:=1.6.2
-PKG_RELEASE:=2
+PKG_VERSION:=1.2.12
+PKG_RELEASE:=3
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_LICENSE:=GPL-3.0
+
 PKG_SOURCE_URL:=https://codeload.github.com/zerotier/ZeroTierOne/tar.gz/$(PKG_VERSION)?
-PKG_HASH:=c8087b26c1191d36fda004b42cdfed31042cafd8586e49015586eef786f2c9a5
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_HASH:=212799bfaeb5e7dff20f2cd83f15742c8e13b8e9535606cfb85abcfb5fb6fed4
 PKG_BUILD_DIR:=$(BUILD_DIR)/ZeroTierOne-$(PKG_VERSION)
 
-PKG_MAINTAINER:=Moritz Warning <moritzwarning@web.de>
-PKG_LICENSE:=BSL 1.1
-PKG_LICENSE_FILES:=LICENSE.txt
 
-PKG_ASLR_PIE:=0
 PKG_BUILD_PARALLEL:=1
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/zerotier
@@ -30,6 +27,7 @@ define Package/zerotier
   TITLE:=Create flat virtual Ethernet networks of almost unlimited size
   URL:=https://www.zerotier.com
   SUBMENU:=VPN
+  MAINTAINER:=Moritz Warning <moritzwarning@web.de>
 endef
 
 define Package/zerotier/description
@@ -56,7 +54,7 @@ endef
 
 # Make binary smaller
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Package/zerotier/conffiles
 /etc/config/zerotier
@@ -71,9 +69,8 @@ define Package/zerotier/install
 ifeq ($(CONFIG_ZEROTIER_ENABLE_SELFTEST),y)
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/zerotier-selftest $(1)/usr/bin/
 endif
-	#$(CP) ./files/* $(1)/
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_CONF) ./files/etc/config/zerotier $(1)/etc/config/zerotier
+
+	$(CP) ./files/* $(1)/
 endef
 
 $(eval $(call BuildPackage,zerotier))

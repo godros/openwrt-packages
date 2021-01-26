@@ -43,7 +43,7 @@ upsd_runas() {
 
 	[ -n "$RUNAS" ] && return 0
 
-	config_get runas upsd runas nut
+	config_get runas upsd runas
 	RUNAS="$runas"
 }
 
@@ -61,7 +61,7 @@ upsd_config() {
 
     # Note runas support requires you make sure USB device file is readable by
     # the runas user
-    config_get runas "$cfg" runas nut
+    config_get runas "$cfg" runas
     RUNAS="$runas"
 
     config_get statepath "$cfg" statepath /var/run/nut
@@ -146,44 +146,46 @@ build_driver_config() {
 
 	echo "[$cfg]" >>"$UPS_C"
 
-	get_write_driver_config "$cfg" bus
-	get_write_driver_config "$cfg" community
-	get_write_driver_config "$cfg" desc
 	get_write_driver_config "$cfg" driver "usbhid-ups"
+	get_write_driver_config "$cfg" port "auto"
+	get_write_driver_config "$cfg" sdorder
+	get_write_driver_config "$cfg" desc
+	get_write_driver_config "$cfg" nolock 0 1
 	get_write_driver_config "$cfg" ignorelb 0 1
-	get_write_driver_config "$cfg" interruptonly 0 1
-	get_write_driver_config "$cfg" interruptsize
-	get_write_driver_config "$cfg" maxreport
-	get_write_driver_config "$cfg" maxstartdelay
 	get_write_driver_config "$cfg" mfr
 	get_write_driver_config "$cfg" model
-	get_write_driver_config "$cfg" nolock 0 1
-	get_write_driver_config "$cfg" notransferoids 0 1
+	get_write_driver_config "$cfg" serial
+	get_write_driver_config "$cfg" sdtime
 	get_write_driver_config "$cfg" offdelay
 	get_write_driver_config "$cfg" ondelay
 	get_write_driver_config "$cfg" pollfreq
-	get_write_driver_config "$cfg" port "auto"
+	get_write_driver_config "$cfg" vendor
 	get_write_driver_config "$cfg" product
+	get_write_driver_config "$cfg" bus
+	get_write_driver_config "$cfg" interruptonly 0 1
+	get_write_driver_config "$cfg" interruptsize
+	get_write_driver_config "$cfg" maxreport
+	get_write_driver_config "$cfg" vendorid
 	get_write_driver_config "$cfg" productid
-	get_write_driver_config "$cfg" retrydelay
-	get_write_driver_config "$cfg" sdorder
-	get_write_driver_config "$cfg" sdtime
-	get_write_driver_config "$cfg" serial
+	get_write_driver_config "$cfg" community
 	get_write_driver_config "$cfg" snmp_version
 	get_write_driver_config "$cfg" snmp_retries
 	get_write_driver_config "$cfg" snmp_timeout
+	get_write_driver_config "$cfg" notransferoids 0 1
+	get_write_driver_config "$cfg" maxstartdelay
+	get_write_driver_config "$cfg" retrydelay
 	get_write_driver_config "$cfg" synchronous
-	get_write_driver_config "$cfg" vendor
-	get_write_driver_config "$cfg" vendorid
+	get_write_driver_config "$cfg" other
+	get_write_driver_config "$cfg" otherflag
 
 	defoverride() {
 		local overvar="$1"
 		local defover="$2"
-		local overtype="$(echo "$overvar" | tr '_' '.')"
+		local overtype="$(echo "$overvar" | tr '.' '_')"
 		local overval
 
-		config_get overval "${defover}_${overvar}" value
-		[ -n "$overval" ] && echo "${defover}.${overtype} = $overval" >>"$UPS_C"
+		config_get overval "${defover}_${overtype}" value
+		[ -n "$overval" ] && echo "${defover}.${overvar} = $overval" >>"$UPS_C"
 	}
 
 	config_list_foreach "$cfg" override defoverride override
@@ -203,8 +205,8 @@ build_driver_config() {
 		fi
 	}
 
-	config_list_foreach "$cfg" other other other
-	config_list_foreach "$cfg" otherflag other otherflag
+	config_list_foreach "$cfg" other other
+	config_list_foreach "$cfg" other otherflag
 	echo "" >>$UPS_C
 	havedriver=1
 }
@@ -220,10 +222,10 @@ build_global_driver_config() {
 	get_write_driver_config "$cfg" retrydelay
 	get_write_driver_config "$cfg" pollinterval
 	get_write_driver_config "$cfg" synchronous
-	config_get runas "$cfg" user nut
+	config_get runas "$cfg" user
 	RUNAS="$runas"
 
-	echo "" >>"$UPS_C"
+	echo "" >>$UPS_C
 }
 
 build_config() {
@@ -249,7 +251,7 @@ start_driver_instance() {
 	local requested="$2"
 	local driver
 	local STATEPATH=/var/run/nut
-	local RUNAS=nut
+	local RUNAS
 
 	[ "$havedriver" != 1 ] && return
 
@@ -281,7 +283,7 @@ start_driver_instance() {
 	procd_set_param respawn
 	procd_set_param stderr 0
 	procd_set_param stdout 1
-	procd_set_param command /lib/nut/"${driver}" -D -a "$cfg" ${RUNAS:+-u "$RUNAS"}
+	procd_set_param command /lib/nut/${driver} -D -a "$cfg" ${RUNAS:+-u $RUNAS}
 	procd_close_instance
 }
 
@@ -321,7 +323,7 @@ start_server_instance() {
 	procd_set_param respawn
 	procd_set_param stderr 0
 	procd_set_param stdout 1
-	procd_set_param command /usr/sbin/upsd -D ${RUNAS:+-u "$RUNAS"}
+	procd_set_param command /usr/sbin/upsd -D ${RUNAS:+-u $RUNAS}
 	procd_close_instance
 }
 
@@ -333,6 +335,7 @@ start_service() {
 	[ -f /var/run/killpower ] && return 0
 
 	config_load nut_server
+
 	build_config
 
 	case $@ in

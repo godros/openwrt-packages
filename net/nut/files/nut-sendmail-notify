@@ -1,7 +1,6 @@
 #!/bin/sh
 
-{
-exec /usr/sbin/sendmail root <<EOF
+/usr/sbin/sendmail root <<EOF
 From: root
 To: root
 Subject: UPS $NOTIFYTYPE Notification
@@ -9,4 +8,3 @@ Subject: UPS $NOTIFYTYPE Notification
 $1
 .
 EOF
-} &
