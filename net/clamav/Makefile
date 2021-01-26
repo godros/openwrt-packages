@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=clamav
-PKG_VERSION:=0.102.3
-PKG_RELEASE:=1
+PKG_VERSION:=0.102.4
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://www.clamav.net/downloads/production/
-PKG_HASH:=ed3050c4569989ee7ab54c7b87246b41ed808259632849be0706467442dc0693
+PKG_HASH:=eebd426a68020ecad0d2084b8c763e6898ccfd5febcae833d719640bb3ff391b
 
 PKG_MAINTAINER:=Marko Ratkaj <marko.ratkaj@sartura.hr> \
 		Lucian Cristian <lucian.cristian@gmail.com>
@@ -88,6 +88,7 @@ TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed $(if $(CONFIG_USE_MUSL),-lfts)
 
 define Package/clamav/conffiles
 /etc/config/clamav
+/etc/config/clamav-milter
 endef
 
 define Package/clamav/install
@@ -106,9 +107,11 @@ define Package/clamav/install
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/clamav.config $(1)/etc/config/clamav
+	$(INSTALL_CONF) ./files/clamav-milter.config $(1)/etc/config/clamav-milter
 
 	$(INSTALL_DIR) $(1)/etc/init.d/
 	$(INSTALL_BIN) ./files/clamav.init $(1)/etc/init.d/clamav
+	$(INSTALL_BIN) ./files/clamav-milter.init $(1)/etc/init.d/clamav-milter
 
 	$(INSTALL_DIR) $(1)/usr/share/clamav
 	$(CP) ./files/bytecode.cvd $(1)/usr/share/clamav/

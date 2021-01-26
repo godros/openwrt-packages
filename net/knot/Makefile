@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=knot
-PKG_VERSION:=2.9.5
+PKG_VERSION:=3.0.4
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://secure.nic.cz/files/knot-dns/
-PKG_HASH:=1109a8ba212ff8ddfdbaf44a6f8fc13a2b880a98a9e54c19112ba72a1aacbf76
+PKG_HASH:=451d8913a769b7e4bcb3e250a3181b448e28a82cfc58cea6f2509475d7327983
 
 PKG_MAINTAINER:=Daniel Salzman <daniel.salzman@nic.cz>
 PKG_LICENSE:=GPL-3.0 LGPL-2.0 0BSD BSD-3-Clause OLDAP-2.8
@@ -150,14 +150,16 @@ export KNOT_VERSION_FORMAT=release
 CONFIGURE_ARGS += 			\
 	--enable-recvmmsg=no		\
 	--enable-cap-ng=no            	\
+	--enable-xdp=no                 \
 	--disable-fastparser		\
 	--without-libidn		\
+	--with-libnghttp2=no		\
 	--with-rundir=/var/run/knot	\
 	--with-storage=/var/lib/knot	\
 	--with-configdir=/etc/knot	\
 	--with-conf-mapsize=20
 
-TARGET_CFLAGS += -DPSELECT_COMPAT -DNDEBUG
+TARGET_CFLAGS += -DNDEBUG
 
 define Package/knot/conffiles
 /etc/knot/knot.conf

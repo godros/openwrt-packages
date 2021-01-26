@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=syncthing
-PKG_VERSION:=1.6.1
-PKG_RELEASE:=1
+PKG_VERSION:=1.12.1
+PKG_RELEASE:=0
 
 PKG_SOURCE:=syncthing-source-v$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/syncthing/syncthing/releases/download/v$(PKG_VERSION)
-PKG_HASH:=f42518d453f7475022b5632420f21a6e0ab8d77f19c29b65ad582bc98e00a0a5
+PKG_HASH:=f636441137650316b83809c177efb4df73be024547e056ea03dcf0ed627d81c7
 
 PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)/$(PKG_NAME)
 
@@ -29,6 +29,7 @@ GO_PKG_LDFLAGS_X:=\
 	github.com/syncthing/syncthing/lib/build.User=openwrt \
 	github.com/syncthing/syncthing/lib/build.Host=openwrt \
 	github.com/syncthing/syncthing/lib/build.Program=syncthing
+GO_PKG_TAGS:=noupgrade
 
 include $(INCLUDE_DIR)/package.mk
 include ../../lang/golang/golang-package.mk
@@ -39,16 +40,12 @@ define Package/syncthing
   DEPENDS:=$(GO_ARCH_DEPENDS)
   SECTION:=utils
   CATEGORY:=Utilities
-  USERID:=syncthing:syncthing
-endef
-
-define Build/Compile
-  $(call GoPackage/Build/Compile,-tags noupgrade)
+  USERID:=syncthing=499:syncthing=499
 endef
 
 define Package/syncthing/conffiles
-/etc/config/syncthing
-/etc/syncthing
+#/etc/config/syncthing
+#/etc/syncthing
 endef
 
 define Package/syncthing/description
@@ -61,7 +58,7 @@ endef
 define Package/syncthing/install
 	$(call GoPackage/Package/Install/Bin,$(1))
 
-	$(CP) ./files/* $(1)/
+#	$(CP) ./files/* $(1)/
 endef
 
 $(eval $(call GoBinPackage,syncthing))

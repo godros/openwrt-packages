@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=frp
-PKG_VERSION:=0.33.0
+PKG_VERSION:=0.34.3
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/fatedier/frp/tar.gz/v${PKG_VERSION}?
-PKG_HASH:=9c773ab4bbd208705c795599c5e69302a379734921c90489ed8ae331c24836cb
+PKG_HASH:=f03e280d9e8fdd4948ed6a5d141e927bf9b5168d7a47a4f3e90a08065e5f192d
 
 PKG_MAINTAINER:=Richard Yu <yurichard3839@gmail.com>
 PKG_LICENSE:=Apache-2.0
@@ -53,20 +53,20 @@ define Package/frp/install
 
 	$(INSTALL_DIR) $(1)/usr/bin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/$(2) $(1)/usr/bin/
-	$(INSTALL_DIR) $(1)/etc/frp/$(2).d/
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/conf/$(2)_full.ini $(1)/etc/frp/$(2).d/
-	$(INSTALL_DIR) $(1)/etc/config/
-	$(INSTALL_CONF) ./files/$(2).config $(1)/etc/config/$(2)
-	$(INSTALL_DIR) $(1)/etc/init.d/
-	$(INSTALL_BIN) ./files/$(2).init $(1)/etc/init.d/$(2)
+#	$(INSTALL_DIR) $(1)/etc/frp/$(2).d/
+#	$(INSTALL_DATA) $(PKG_BUILD_DIR)/conf/$(2)_full.ini $(1)/etc/frp/$(2).d/
+#	$(INSTALL_DIR) $(1)/etc/config/
+#	$(INSTALL_CONF) ./files/$(2).config $(1)/etc/config/$(2)
+#	$(INSTALL_DIR) $(1)/etc/init.d/
+#	$(INSTALL_BIN) ./files/$(2).init $(1)/etc/init.d/$(2)
 endef
 
 define Package/frpc/conffiles
-/etc/config/frpc
+#/etc/config/frpc
 endef
 
 define Package/frps/conffiles
-/etc/config/frps
+#/etc/config/frps
 endef
 
 define Package/frpc/install

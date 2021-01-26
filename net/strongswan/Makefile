@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=strongswan
-PKG_VERSION:=5.8.4
+PKG_VERSION:=5.9.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://download.strongswan.org/ https://download2.strongswan.org/
-PKG_HASH:=2d9a57e33813b62d58cba07531c4d5a35c6b823dfe9b8ff7c623b6571f02553c
+PKG_HASH:=a337c9fb63d973b8440827755c784031648bf423b7114a04918b0b00fd42cafb
 PKG_LICENSE:=GPL-2.0-or-later
 PKG_MAINTAINER:=Stijn Tintel <stijn@linux-ipv6.be>
 PKG_CPE_ID:=cpe:/a:strongswan:strongswan
