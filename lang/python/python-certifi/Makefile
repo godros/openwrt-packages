@@ -13,13 +13,17 @@ PKG_MAINTAINER:=Eneas U de Queiroz <cote2004-github@yahoo.com>
 PKG_LICENSE:=MPL-2.0
 PKG_LICENSE_FILES:=LICENSE
 
-PYPI_NAME:=certifi
+PKG_SOURCE:=certifi-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://files.pythonhosted.org/packages/source/c/certifi
 PKG_HASH:=25b64c7da4cd7479594d035c08c2d809eb4aab3a26e5a990ea98cc450c320f1f
 
-include ../pypi.mk
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(BUILD_VARIANT)-certifi-$(PKG_VERSION)
+
 include $(INCLUDE_DIR)/package.mk
 include ../python-package.mk
 include ../python3-package.mk
+
+PKG_UNPACK:=$(HOST_TAR) -C $(PKG_BUILD_DIR) --strip-components=1 -xzf $(DL_DIR)/$(PKG_SOURCE)
 
 define Package/python-certifi/Default
   SUBMENU:=Python

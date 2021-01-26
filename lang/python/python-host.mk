@@ -50,7 +50,7 @@ define host_python_settings
 	LDSHARED="$(HOSTCC) -shared" \
 	CFLAGS="$(HOST_CFLAGS)" \
 	CPPFLAGS="$(HOST_CPPFLAGS) -I$(HOST_PYTHON_INC_DIR)" \
-	LDFLAGS="$(HOST_LDFLAGS) -lpython$(PYTHON_VERSION) -Wl$(comma)-rpath=$(STAGING_DIR_HOSTPKG)/lib" \
+	LDFLAGS="$(HOST_LDFLAGS) -lpython$(PYTHON_VERSION) -Wl$(comma)-rpath$(comma)$(STAGING_DIR_HOSTPKG)/lib" \
 	_PYTHON_HOST_PLATFORM=linux2
 endef
 
@@ -74,12 +74,15 @@ HOST_PYTHON_PIP:=$(STAGING_DIR_HOSTPKG)/bin/pip$(PYTHON_VERSION)
 
 # $(1) => packages to install
 define Build/Compile/HostPyPipInstall
-	$(call host_python_settings) \
-	$(HOST_PYTHON_PIP) \
-		--disable-pip-version-check \
-		--cache-dir "$(DL_DIR)/pip-cache" \
-		install \
-		$(1)
+	$(call locked, \
+		$(call host_python_settings) \
+		$(HOST_PYTHON_PIP) \
+			--disable-pip-version-check \
+			--cache-dir "$(DL_DIR)/pip-cache" \
+			install \
+			$(1), \
+		pip \
+	)
 endef
 
 # $(1) => build subdir

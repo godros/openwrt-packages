@@ -8,19 +8,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libqmi
-PKG_VERSION:=1.24.0
-PKG_RELEASE:=3
+PKG_VERSION:=1.24.12
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://www.freedesktop.org/software/libqmi
-PKG_HASH:=aeb69f90c273467cce246176cba0967c6413f1995a976992770a597c4fe28c79
+PKG_HASH:=2d3b91a2b8a882b17b16403c9ef7bdce522db4f0ceaa3e4dff76033885428b69
 
 PKG_MAINTAINER:=Nicholas Smith <nicholas.smith@telcoantennas.com.au>
 
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
-
-PKG_FIXUP:=autoreconf
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk

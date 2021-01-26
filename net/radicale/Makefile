@@ -8,11 +8,12 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=radicale
 PKG_VERSION:=1.1.6
-PKG_RELEASE:=1
-PKG_MAINTAINER:=Christian Schoenebeck <christian.schoenebeck@gmail.com>
+PKG_RELEASE:=3
+PKG_MAINTAINER:=
 
 PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:radicale:radicale
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=https://github.com/Kozea/Radicale
@@ -47,7 +48,7 @@ define Package/radicale-py3
   $(call Package/radicale/Default)
   TITLE+= (Python 3)
   VARIANT:=3
-  DEPENDS:=+python3-logging +python3-openssl +python3-xml +python3-codecs +python3-email
+  DEPENDS:=+python3-logging +python3-openssl +python3-xml +python3-codecs +python3-urllib
 endef
 
 # shown in LuCI package description

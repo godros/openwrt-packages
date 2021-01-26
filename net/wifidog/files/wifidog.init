@@ -17,6 +17,6 @@ start_service() {
     procd_close_instance
 }
 
-status_service() {
+status() {
     /usr/bin/wdctl status
 }

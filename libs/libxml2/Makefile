@@ -40,34 +40,6 @@ define Package/libxml2/description
   A library for manipulating XML and HTML resources.
 endef
 
-define Package/libxml2-dev
-  SECTION:=devel
-  CATEGORY:=Development
-  SUBMENU:=Libraries
-  TITLE:=Development files for libxml2
-  URL:=http://xmlsoft.org/
-  DEPENDS:=+libxml2
-endef
-
-define Package/libxml2-dev/description
-  A library for manipulating XML and HTML resources.
-
-  This package contains the headers and xml2-config binary.
-endef
-
-define Package/libxml2-utils
-  SECTION:=utils
-  CATEGORY:=Utilities
-  TITLE:=XML command line utilities (xmllint...)
-  URL:=http://xmlsoft.org/
-  DEPENDS:=+libxml2
-endef
-
-define Package/libxml2-utils/description
-  This package contains the binaries xmllint and xmlcatalog
-  from libxml2, a library for manipulating XML and HTML resources.
-endef
-
 TARGET_CFLAGS += $(FPIC)
 
 CONFIGURE_ARGS += \
@@ -136,8 +108,11 @@ HOST_CONFIGURE_ARGS += \
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(2)/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/xml2-config $(2)/bin/
-	$(SED) 's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/usr,g' $(2)/bin/xml2-config
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/xml2-config \
+		$(2)/bin/$(GNU_TARGET_NAME)-xml2-config
+	$(SED) 's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/usr,g' \
+		$(2)/bin/$(GNU_TARGET_NAME)-xml2-config
+	$(LN) $(GNU_TARGET_NAME)-xml2-config $(2)/bin/xml2-config
 
 	$(INSTALL_DIR) $(1)/usr/include
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/libxml2 $(1)/usr/include/
@@ -156,37 +131,16 @@ define Build/InstallDev
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/aclocal/* $(2)/share/aclocal
 endef
 
+define Host/Install
+	$(call Host/Install/Default)
+	mv $(1)/bin/xml2-config $(1)/bin/$(GNU_HOST_NAME)-xml2-config
+	$(LN) $(GNU_HOST_NAME)-xml2-config $(1)/bin/xml2-config
+endef
+
 define Package/libxml2/install
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libxml2.so.* $(1)/usr/lib/
-endef
-
-define Package/libxml2-dev/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/xml2-config $(1)/usr/bin/
-	$(SED) "s,$(STAGING_DIR),,g" $(1)/usr/bin/xml2-config
-
-	$(INSTALL_DIR) $(1)/usr/include/
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
-
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libxml2.so $(1)/usr/lib/
-
-	$(INSTALL_DIR) $(1)/usr/lib/{cmake,pkgconfig}
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/{cmake,pkgconfig} $(1)/usr/lib/
-	$(SED) "s,$(STAGING_DIR),,g" $(1)/usr/lib/pkgconfig/*.pc
-
-	$(INSTALL_DIR) $(1)/usr/share/aclocal
-	$(CP) $(PKG_INSTALL_DIR)/usr/share/aclocal/* $(1)/usr/share/aclocal
-endef
-
-define Package/libxml2-utils/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/xmllint $(1)/usr/bin/
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/xmlcatalog $(1)/usr/bin/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libxml2.so* $(1)/usr/lib/
 endef
 
 $(eval $(call HostBuild))
 $(eval $(call BuildPackage,libxml2))
-$(eval $(call BuildPackage,libxml2-dev))
-$(eval $(call BuildPackage,libxml2-utils))

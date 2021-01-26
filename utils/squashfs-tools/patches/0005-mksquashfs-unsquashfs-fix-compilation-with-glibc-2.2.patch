@@ -36,7 +36,7 @@ index a57f85c..a492b27 100644
 +++ b/squashfs-tools/unsquashfs.c
 @@ -33,6 +33,7 @@
  #include "fnmatch_compat.h"
-
+ 
  #include <sys/sysinfo.h>
 +#include <sys/sysmacros.h>
  #include <sys/types.h>

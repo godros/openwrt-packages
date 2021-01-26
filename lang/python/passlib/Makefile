@@ -8,19 +8,23 @@ PKG_VERSION:=1.7.2
 PKG_RELEASE:=1
 PKG_LICENSE:=BSD-3-Clause
 
-PYPI_NAME:=$(PKG_NAME)
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://files.pythonhosted.org/packages/source/p/passlib
 PKG_HASH:=8d666cef936198bc2ab47ee9b0410c94adf2ba798e5a84bf220be079ae7ab6a8
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(BUILD_VARIANT)-passlib-$(PKG_VERSION)
 
-include ../pypi.mk
 include $(INCLUDE_DIR)/package.mk
 
 include ../python-package.mk
 include ../python3-package.mk
 
+PKG_UNPACK:=$(HOST_TAR) -C $(PKG_BUILD_DIR) --strip-components=1 -xzf $(DL_DIR)/$(PKG_SOURCE)
+
 define Package/passlib/Default
   SUBMENU:=Python
   SECTION:=lang
   CATEGORY:=Languages
+  MAINTAINER:=Daniel Dickinson <cshored@thecshore.com>
   TITLE:=Comprehensive password hashing framework
   URL:=https://bitbucket.org/ecollins/passlib
 endef

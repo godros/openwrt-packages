@@ -9,10 +9,11 @@ PKG_VERSION:=1.4.3
 PKG_RELEASE:=1
 PKG_MAINTAINER:=Karel Kočí <cynerd@email.cz>
 
-PYPI_NAME:=jsonpath-ng
+PKG_SOURCE_URL:=https://pypi.python.org/packages/source/j/jsonpath-ng/
+PKG_SOURCE:=jsonpath-ng-$(PKG_VERSION).tar.gz
 PKG_HASH:=b1fc75b877e9b2f46845a455fbdcfb0f0d9c727c45c19a745d02db620a9ef0be
+PKG_BUILD_DIR:=$(BUILD_DIR)/jsonpath-ng-$(PKG_VERSION)
 
-include ../pypi.mk
 include $(INCLUDE_DIR)/package.mk
 include ../python3-package.mk
 

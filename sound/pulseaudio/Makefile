@@ -9,21 +9,24 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pulseaudio
 PKG_VERSION:=12.2
-PKG_RELEASE:=4
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://freedesktop.org/software/pulseaudio/releases/
 PKG_HASH:=809668ffc296043779c984f53461c2b3987a45b7a25eb2f0a1d11d9f23ba4055
-
-PKG_LICENSE:=LGPL-2.1-or-later
+PKG_LICENSE:=LGPL-2.1+
 PKG_LICENSE_FILES:=GPL LICENSE
 PKG_CPE_ID:=cpe:/a:pulseaudio:pulseaudio
 
-PKG_FIXUP:=autoreconf
-PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
-PKG_BUILD_DEPENDS:=intltool/host glib2/host
+PKG_BUILD_DEPENDS:=intltool/host
+
+PKG_FIXUP:=autoreconf
 PKG_USE_MIPS16:=0
+
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+
+PKG_INSTALL = 1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
@@ -97,7 +100,7 @@ define Package/pulseaudio-profiles
 endef
 
 CONFIGURE_ARGS += \
-	$(if $(findstring neon,$(CONFIG_TARGET_OPTIMIZATION)),--enable-neon-opt,--disable-neon-opt) \
+	$(if $(findstring neon,$(CONFIG_CPU_TYPE)),--enable-neon-opt,--disable-neon-opt) \
 	--with-system-user=pulse \
 	--with-system-group=pulse \
 	--with-access-group=audio \
@@ -117,7 +120,6 @@ CONFIGURE_ARGS += \
 	--disable-jack \
 	--disable-asyncns \
 	--disable-lirc \
-	--disable-tests \
 	--disable-udev \
 	--without-fftw \
 	--without-soxr \
